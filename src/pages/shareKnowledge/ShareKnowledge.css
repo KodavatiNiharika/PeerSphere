@@ -1,0 +1,134 @@
+/* Sidebar styles */
+.sidebar {
+  width: 250px;
+  height: 100vh;
+  background-color: #202020; /* Dark sidebar background */
+  color: #ffffff;
+  position: fixed;
+  top: 0;
+  left: 0;
+  padding: 20px;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar h2 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar ul li {
+  margin: 15px 0;
+}
+
+.sidebar ul li a {
+  text-decoration: none;
+  color: #ffffff;
+  font-size: 1.1rem;
+  display: block;
+  padding: 10px 15px;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.sidebar ul li a:hover {
+  background-color: #303030;
+}
+
+/* Main container for ShareKnowledge */
+.video-page-container {
+  margin-left: 250px; /* Adjust margin to make room for the sidebar */
+  padding: 20px;
+  background-color: #f9f9f9; /* Light background for contrast */
+  min-height: 100vh;
+}
+
+.video-page-container h1 {
+  font-size: 2rem;
+  color: #333333;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 10px;
+}
+
+/* Video container */
+.video-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between; /* Space between video items */
+  gap: 20px;
+}
+
+/* Individual video item */
+.video-item {
+  flex: 1 1 calc(33.33% - 20px); /* 3 videos per row, subtract gap space */
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  text-align: left;
+  transition: transform 0.2s;
+}
+
+.video-item:hover {
+  transform: translateY(-5px); /* Slight hover effect */
+}
+
+.video-item h2 {
+  font-size: 1.2rem;
+  margin: 10px;
+  color: #333333;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.video-item p {
+  font-size: 1rem;
+  margin: 0 10px 10px;
+  color: #666666;
+}
+
+.video-item video {
+  width: 33%;
+  height: auto;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .video-item {
+    flex: 1 1 calc(50% - 20px); /* 2 videos per row */
+  }
+
+  .sidebar {
+    width: 200px;
+  }
+
+  .video-page-container {
+    margin-left: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .video-item {
+    flex: 1 1 100%; /* 1 video per row */
+  }
+
+  .sidebar {
+    position: relative;
+    width: 100%;
+    height: auto;
+  }
+
+  .video-page-container {
+    margin-left: 0;
+  }
+}

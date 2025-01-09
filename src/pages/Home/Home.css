@@ -1,0 +1,45 @@
+/* Home.css */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box; /* Ensure consistent box sizing */
+}
+
+body, html {
+  height: 100%; /* Ensure the body and HTML elements cover the entire height */
+  width: 100%;  /* Ensure the body and HTML elements cover the entire width */
+}
+
+div {
+  height: 100vh; /* Full height of the viewport */
+  width: 100vw;
+  display: flex;
+  flex-direction: column; /* Arrange content vertically */
+  justify-content: flex-start; /* Align content from the top */
+  align-items: center; /* Center content horizontally */
+}
+
+h1 {
+  text-align: center;
+  margin-top: 70px; /* Space for the fixed navbar */
+  font-size: 2rem; /* Large font size */
+  color: #333;
+}
+
+.Navbar {
+  position: sticky;
+  top: 0;
+  width: 100%; /* Full width */
+}
+
+.PostList {
+  flex-grow: 1; /* Allow PostList to grow and fill available space */
+  width: 100%; /* Ensure PostList fills the full width */
+  padding: 20px; /* Add some padding */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
