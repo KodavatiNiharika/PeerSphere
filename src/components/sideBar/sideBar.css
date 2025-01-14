@@ -1,87 +1,85 @@
-/* Sidebar Container */
+/* sideBar.css */
+
 .sidebar {
-    width: 250px;
-    height: 100vh; /* Full viewport height */
-    background-color: #2c3e50; /* Professional dark theme */
-    color: #ecf0f1; /* Light text color */
-    display: flex;
-    flex-direction: column;
-    padding: 20px;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Slight shadow for depth */
-    position: fixed; /* Fixed position on the left */
-    top: 0;
-    left: 0;
-    z-index: 1000;
+  width: 250px; /* Sidebar width */
+  background-color: #333; /* Dark background color */
+  color: white; /* Text color */
+  position: fixed; /* Fix the sidebar on the left */
+  top: 0;
+  left: 0;
+  height: 100vh; /* Full viewport height */
+  padding-top: 20px; /* Top padding for spacing */
+  z-index: 1000; /* Ensure sidebar stays on top */
+  transition: transform 0.3s ease-in-out; /* Smooth transition for sidebar toggling */
+}
+
+.sidebar-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.sidebar-menu {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.sidebar-menu li {
+  margin: 20px 0;
+}
+
+.sidebar-menu li a {
+  display: block;
+  padding: 10px 15px;
+  color: white;
+  text-decoration: none;
+  font-size: 1.1rem;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.sidebar-menu li a:hover {
+  background-color: #f0a500; /* Highlight color on hover */
+  color: #333; /* Dark text color on hover */
+  border-radius: 5px; /* Slight rounding of the corners */
+}
+
+.side-logout {
+  display: block;
+  padding: 10px 15px;
+  color: white;
+  font-size: 1.1rem;
+  cursor: pointer;
+  text-align: left; /* Align text to the left */
+  margin: 10px 15px; /* Margin to the left for proper spacing */
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.side-logout:hover {
+  background-color: #f0a500; /* Highlight color on hover */
+  color: #333; /* Dark text color on hover */
+  border-radius: 5px;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%; /* Full width on small screens */
+    height: auto; /* Auto height to fit content */
+    position: relative; /* Relative positioning for small screens */
   }
-  
-  /* Sidebar Title */
+
   .sidebar-title {
-    font-size: 1.5rem;
-    font-weight: bold;
-    margin-bottom: 20px;
-    text-align: center;
-    border-bottom: 1px solid #34495e; /* Separator */
-    padding-bottom: 10px;
-  }
-  
-  /* Sidebar Menu */
-  .sidebar-menu {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    flex-grow: 1;
-  }
-  
-  .sidebar-menu li {
-    margin: 15px 0;
-  }
-  
-  .sidebar-menu a {
-    text-decoration: none; /* Remove underline */
-    color: #ecf0f1; /* Light text color */
     font-size: 1.2rem;
-    display: block;
+    margin-bottom: 20px;
+  }
+
+  .sidebar-menu li a {
+    font-size: 1rem; /* Smaller font size on mobile */
+  }
+
+  .side-logout {
+    font-size: 1rem; /* Smaller font size for mobile */
     padding: 10px 15px;
-    border-radius: 4px;
-    transition: background-color 0.3s ease, color 0.3s ease;
   }
-  
-  .sidebar-menu a:hover {
-    background-color: #34495e; /* Highlight on hover */
-    color: #f39c12; /* Golden accent */
-  }
-  
-  /* Logout Link Styling */
-  .sidebar-menu .logout {
-    color: #e74c3c; /* Red for logout */
-  }
-  
-  .sidebar-menu .logout:hover {
-    background-color: #c0392b; /* Darker red on hover */
-    color: #ffffff; /* White text */
-  }
-  
-  /* Responsive Adjustments */
-  @media (max-width: 768px) {
-    .sidebar {
-      width: 200px; /* Narrower sidebar on smaller screens */
-      padding: 15px;
-    }
-  
-    .sidebar-menu a {
-      font-size: 1rem; /* Smaller text size */
-    }
-  }
-  
-  @media (max-width: 480px) {
-    .sidebar {
-      width: 100%; /* Full width on very small screens */
-      height: auto; /* Adjust height */
-      position: relative; /* Relative positioning */
-    }
-  
-    .sidebar-title {
-      font-size: 1.2rem;
-    }
-  }
-  
+}

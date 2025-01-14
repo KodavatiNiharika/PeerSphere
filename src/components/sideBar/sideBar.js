@@ -34,9 +34,9 @@ function Sidebar() {
           <Link to="/enrolled-courses">Enrolled Courses</Link>
         </li>
         <li>
-          <button className="logout" onClick={handleLogout}>
+          <span className="side-logout" onClick={handleLogout}>
             Logout
-          </button>
+          </span>
         </li>
       </ul>
     </div>

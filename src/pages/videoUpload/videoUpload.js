@@ -1,13 +1,17 @@
 import React, { useState } from "react";
 import axios from "axios";
+import NewNavBar from "../../components/newNavBar/newNavBar";
+import './videoUpload.css'
+import { useNavigate } from 'react-router-dom';
+
 
 function VideoUpload() {
+  const navigate = useNavigate();
   const [videoDetails, setVideoDetails] = useState({
-    username: "",
+    title: "",
     description: "",
-    mail: "",
+    tag: "ML", // Set default to ML
     video: null,
-    tag: "", // Added tag
   });
 
   const handleInputChange = (e) => {
@@ -27,32 +31,32 @@ function VideoUpload() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const { username, description, mail, video, tag } = videoDetails;
+    const { title, description, tag, video } = videoDetails;
 
-    if (!username || !description || !mail || !video || !tag) {
-      alert("All fields are required, including selecting a video and providing a tag.");
+    if (!title || !description || !tag || !video) {
+      alert("All fields are required, including selecting a video.");
       return;
     }
 
     const formData = new FormData();
-    formData.append("username", username);
+    formData.append("title", title);
     formData.append("description", description);
-    formData.append("mail", mail);
-    formData.append("video", video);
-    formData.append("tag", tag); // Append tag to form data
+    formData.append("tag", tag);
+    formData.append("video", video); // The file itself
 
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token"); // Ensure the token exists
 
     try {
       const response = await axios.post("http://localhost:3001/videoUpload", formData, {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "multipart/form-data", // Ensure multipart format
         },
       });
 
       alert(response.data.message || "Video uploaded successfully.");
       resetForm();
+      navigate("/");
     } catch (error) {
       console.error("Upload error:", error);
       alert(error.response?.data?.message || "Error uploading video.");
@@ -61,63 +65,61 @@ function VideoUpload() {
 
   const resetForm = () => {
     setVideoDetails({
-      username: "",
+      title: "",
       description: "",
-      mail: "",
+      tag: "ML", // Reset default to ML
       video: null,
-      tag: "", // Reset tag
     });
   };
 
   return (
-    <div>
-      <h1>Upload a Video</h1>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          name="username"
-          placeholder="Username"
-          value={videoDetails.username}
-          onChange={handleInputChange}
-          required
-        />
-        <br />
-        <textarea
-          name="description"
-          placeholder="Video Description"
-          value={videoDetails.description}
-          onChange={handleInputChange}
-          required
-        ></textarea>
-        <br />
-        <input
-          type="email"
-          name="mail"
-          placeholder="Your Email"
-          value={videoDetails.mail}
-          onChange={handleInputChange}
-          required
-        />
-        <br />
-        <input
-          type="file"
-          accept="video/*"
-          onChange={handleFileChange}
-          required
-        />
-        <br />
-        <input
-          type="text"
-          name="tag"
-          placeholder="Video tag"
-          value={videoDetails.tag}
-          onChange={handleInputChange}
-          required
-        />
-        <br />
-        <button type="submit">Upload Video</button>
-      </form>
-    </div>
+    <>
+      <NewNavBar />
+      <div className="video-upload">
+        <h1 >Upload a Video</h1>
+        <form className="video-upload-form" onSubmit={handleSubmit}>
+          <input
+            type="text"
+            name="title"
+            placeholder="Video Title"
+            value={videoDetails.title}
+            onChange={handleInputChange}
+            required
+          />
+          <br />
+          <textarea
+            name="description"
+            placeholder="Video Description"
+            value={videoDetails.description}
+            onChange={handleInputChange}
+            required
+          ></textarea>
+          <br />
+          <select
+            name="tag"
+            value={videoDetails.tag}
+            onChange={handleInputChange}
+            required
+          >
+            <option value="ML">ML</option>
+            <option value="OS">OS</option>
+            <option value="DBMS">DBMS</option>
+            <option value="CN">CN</option>
+            <option value="CNS">CNS</option>
+            <option value="DSA">DSA</option>
+          </select>
+          <br />
+          <input
+            type="file"
+            accept="video/*"
+            onChange={handleFileChange}
+            required
+          />
+          <br />
+          <button className="video-upload-button" type="submit">Upload Video</button>
+        </form>
+      </div>
+    </>
   );
 }
 

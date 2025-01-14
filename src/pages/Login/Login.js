@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/navBar/Navbar";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode"; // Correct named import
 import "./Login.css";
 
 const Login = () => {
@@ -30,18 +31,22 @@ const Login = () => {
       const response = await axios.post("http://localhost:3001/login", loginData);
 
       if (response.data.message === "Login successful") {
-        // Store the token and user data
+        // Extract the token and user data
         const { token, user } = response.data;
+
         if (!token) {
           setError("Token not received. Please contact support.");
           setLoading(false);
           return;
         }
 
-        // Store token and email in localStorage
+        // Decode the token using jwtDecode
+        const decodedToken = jwtDecode(token); 
+
+        // Store token, decoded user data, and email in localStorage
         localStorage.setItem("token", token);
         localStorage.setItem("email", email); // Store email along with token
-        localStorage.setItem("user", JSON.stringify(user)); // Store user details
+        localStorage.setItem("user", JSON.stringify(decodedToken)); // Store decoded user details
 
         // Redirect to the ShareKnowledge page
         navigate("/ShareKnowledge");
@@ -49,7 +54,7 @@ const Login = () => {
         setError(response.data.message || "Invalid credentials.");
       }
     } catch (err) {
-      // Improved error handling
+      // Enhanced error handling
       setError(err.response?.data?.message || "An error occurred. Please try again.");
     } finally {
       setLoading(false); // Reset loading state

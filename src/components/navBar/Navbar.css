@@ -1,4 +1,16 @@
 /* Navbar.css */
+.profile-link {
+  color: white; /* White text color */
+  font-size: 1.2rem; /* Slightly larger text */
+  margin: 0 10px; /* Space around the link */
+  cursor: pointer; /* Change cursor to pointer for clickable element */
+  transition: color 0.3s ease; /* Smooth color transition on hover */
+  text-decoration: none; /* Remove underline */
+}
+
+.profile-link:hover {
+  color: #f0a500; /* Highlight color on hover */
+}
 
 nav {
   background-color: #333; /* Dark background for the navbar */
@@ -11,15 +23,15 @@ nav {
   left: 0; /* Start from the left edge */
   width: 100vw; /* Full width of the viewport */
   z-index: 1000; /* Ensures it appears above other content */
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Optional shadow for better visibility */
 }
 
 nav a {
   color: #fff; /* White text for links */
-  text-decoration: none; /* Remove underline */
   font-size: 1.2rem; /* Slightly larger text */
   margin: 0 10px;
+  cursor: pointer;
   transition: color 0.3s ease; /* Smooth color transition on hover */
+  text-decoration: none; /* Remove underline */
 }
 
 nav a:hover {
@@ -27,7 +39,6 @@ nav a:hover {
 }
 
 nav a.active {
-  font-weight: bold; /* Bold text for active link */
   color: #f0a500; /* Same highlight color for active link */
 }
 

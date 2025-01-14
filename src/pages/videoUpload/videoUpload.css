@@ -1,0 +1,100 @@
+/* videoUpload.css */
+
+/* Overall page layout */
+.video-upload {
+    margin: 0 auto;
+    max-width: 800px;
+    padding: 20px;
+    background-color: #f8f9fa; /* Light background */
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 50px; /* Space from the top */
+  }
+  
+  /* Heading */
+  .video-upload h1 {
+    text-align: center;
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 30px;
+  }
+  
+  /* Form styling */
+  .video-upload-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Space between form elements */
+  }
+  
+  /* Input fields */
+  input[type="text"],
+  textarea,
+  select,
+  input[type="file"] {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+    color: #333;
+    outline: none;
+  }
+  
+  input[type="text"]:focus,
+  textarea:focus,
+  select:focus,
+  input[type="file"]:focus {
+    border-color: #f0a500; /* Focus border color */
+  }
+  
+  textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+  
+  /* Button */
+  button.video-upload-button {
+    padding: 12px 20px;
+    background-color: #333;/* Bright yellow for the button */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  button.video-upload-button:hover {
+    background-color:#333; /* Darker yellow on hover */
+  }
+  
+  /* File input styling */
+  input[type="file"] {
+    padding: 5px;
+    border: none;
+    background-color: #f8f9fa;
+  }
+  
+  input[type="file"]:hover {
+    background-color: #f1f1f1; /* Light gray on hover */
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    div {
+      margin-top: 20px;
+      padding: 15px;
+    }
+  
+    h1 {
+      font-size: 1.6rem;
+    }
+  
+    .video-upload-form {
+      gap: 12px; /* Reduce gap between form elements */
+    }
+  
+    button.video-upload-button {
+      font-size: 1rem; /* Smaller font size for button */
+    }
+  }
+  

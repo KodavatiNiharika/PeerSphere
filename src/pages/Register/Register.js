@@ -3,6 +3,7 @@ import "./Register.css";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import Navbar from "../../components/navBar/Navbar";
 
 const Register = () => {
   const [username, setUsername] = useState("");
@@ -64,6 +65,8 @@ const Register = () => {
   };
 
   return (
+    <>
+      <Navbar/>
     <div className="container">
       <h1>Register</h1>
 
@@ -100,7 +103,7 @@ const Register = () => {
         {error && <p className="error">{error}</p>}
         {success && <p className="success">{success}</p>}
 
-        <button type="submit" disabled={loading}>
+        <button className="register-button" type="submit" disabled={loading}>
           {loading ? <span className="spinner"></span> : "Register"}
         </button>
       </form>
@@ -108,6 +111,7 @@ const Register = () => {
       <p>Already have an account?</p>
       <Link to="/login">Login</Link>
     </div>
+    </>
   );
 };
 

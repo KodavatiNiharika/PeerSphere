@@ -51,7 +51,7 @@ input[type="password"]:focus {
 }
 
 /* Button */
-button {
+.register-button {
   padding: 12px;
   background-color: #007BFF;
   color: white;
@@ -62,7 +62,7 @@ button {
   transition: background-color 0.3s;
 }
 
-button:hover {
+.register-button:hover {
   background-color: #0056b3;
 }
 

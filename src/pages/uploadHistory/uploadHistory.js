@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { jwtDecode } from 'jwt-decode';
 import "./uploadHistory.css";
+import NewNavBar from '../../components/newNavBar/newNavBar'
 
 const UploadHistory = () => {
   const [uploadHistory, setUploadHistory] = useState([]);
   const [groupedVideos, setGroupedVideos] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [email, setEmail] = useState("");
 
   const fetchUploadHistory = async () => {
     const token = localStorage.getItem("token");
@@ -19,9 +18,6 @@ const UploadHistory = () => {
     }
 
     try {
-      const decodedToken = jwtDecode(token);
-      setEmail(decodedToken.email);
-
       const response = await fetch("http://localhost:3001/api/uploadHistory", {
         method: "GET",
         headers: {
@@ -37,13 +33,7 @@ const UploadHistory = () => {
       }
 
       const data = await response.json();
-      if (data.uploadHistory && data.uploadHistory.length > 0) {
-        setUploadHistory(data.uploadHistory);
-        groupVideosByTag(data.uploadHistory); // Group videos by tag
-      } else {
-        setUploadHistory([]);
-        setError("No uploads found for your account.");
-      }
+      groupVideosByTag(data.uploadHistory);
     } catch (err) {
       setError(err.message || "An error occurred while fetching the upload history.");
     } finally {
@@ -66,39 +56,36 @@ const UploadHistory = () => {
   }, []);
 
   if (loading) {
-    return <div className="loading-message">Loading upload history...</div>;
+    return <div className="upload-history-loading">Loading upload history...</div>;
   }
 
   if (error) {
-    return <div className="error-message">Error: {error}</div>;
+    return <div className="upload-history-error">Error: {error}</div>;
   }
 
   return (
-    <div className="upload-history-container">
-      <h2>My Upload History</h2>
-      <p>Email: {email}</p>
+    <>
+    <NewNavBar />
+    
+    <div className="upload-history">
+      <h2 className="upload-history-title">My Upload History</h2>
       {Object.keys(groupedVideos).length === 0 ? (
-        <p>No uploads found for your account.</p>
+        <p className="upload-history-no-uploads">No uploads found.</p>
       ) : (
         Object.entries(groupedVideos).map(([tag, videos]) => (
-          <div key={tag} className="tag-group">
-            <h3>Task: {tag}</h3>
+          <div className="upload-history-group" key={tag}>
+            <h3 className="upload-history-task">Topic: {tag}</h3>
             <ul className="upload-history-list">
               {videos.map((upload, index) => (
-                <li key={index} className="upload-item">
-                  <h4>{upload.title || "Untitled Video"}</h4>
-                  <p>Date: {upload.date ? new Date(upload.date).toLocaleDateString() : "Unknown"}</p>
-                  <p>Description: {upload.description || "No description provided."}</p>
+                <li className="upload-history-item" key={index}>
+                  <h4 className="upload-history-video-title">{upload.title}</h4>
+                  
+                  <video className="upload-history-video" controls>
+                    <source src={upload.videoPath} type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
 
-                  {/* Render video */}
-                  {upload.videoPath ? (
-                    <video width="100%" controls>
-                      <source src={upload.videoPath} type="video/mp4" />
-                      Your browser does not support the video tag.
-                    </video>
-                  ) : (
-                    <p>Video not available</p>
-                  )}
+                  <p className="upload-history-video-description">Description: {upload.description}</p>
                 </li>
               ))}
             </ul>
@@ -106,6 +93,7 @@ const UploadHistory = () => {
         ))
       )}
     </div>
+    </>
   );
 };
 
