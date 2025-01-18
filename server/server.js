@@ -8,9 +8,9 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 require("dotenv").config();
 
-const StudentModel = require("./models/student"); // Fix: Import StudentModel
+const StudentModel = require("./models/student");
 const VideoModel = require("./models/video");
-const video = require("./models/video");
+const FileModel = require("./models/file");
 
 const app = express();
 
@@ -94,8 +94,8 @@ mongoose
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
-// Multer Configuration
-const storage = multer.diskStorage({
+// Multer Configuration for Video Uploads
+const videoStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadDir = "./uploads/videos";
     if (!fs.existsSync(uploadDir)) {
@@ -108,8 +108,8 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({
-  storage,
+const videoUpload = multer({
+  storage: videoStorage,
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowedTypes = /mp4|mkv|avi/;
@@ -122,10 +122,27 @@ const upload = multer({
   },
 });
 
-// Serve static files from the uploads directory
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// Multer Configuration for General File Uploads
+const fileStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = "./uploads/files";
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
+});
 
-// Fetch All Videos Route (Updated)
+const fileUpload = multer({
+  storage: fileStorage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
+
+// Routes
+// Video Upload Route
 app.get("/videos", authenticateToken, async (req, res) => {
   try {
     // Fetch all videos (without pagination)
@@ -148,8 +165,30 @@ app.get("/videos", authenticateToken, async (req, res) => {
   }
 });
 
-// Routes
-app.post("/videoUpload", authenticateToken, upload.single("video"), async (req, res) => {
+app.get("/files", authenticateToken, async (req, res) => {
+  try {
+    // Fetch all files (without pagination)
+    const files = await FileModel.find().exec();
+    
+    if (files.length === 0) {
+      return res.status(404).json({ message: "No files found" });
+    }
+    // Add full video path to each video object
+    const fileData = files.map((file) => ({
+      ...file._doc,
+      filePath: `${file.filePath}`,
+    }));
+
+    res.status(200).json({
+      files: fileData,
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Server error: " + err.message });
+  }
+});
+
+
+app.post("/videoUpload", authenticateToken, videoUpload.single("video"), async (req, res) => {
   try {
     const { title, description, tag } = req.body;
     if (!req.file) {
@@ -170,6 +209,45 @@ app.post("/videoUpload", authenticateToken, upload.single("video"), async (req, 
   }
 });
 
+// General File Upload Route
+app.post("/fileUpload", authenticateToken, fileUpload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    // Destructure the incoming request body to capture the tag and description
+    const { name, description, tag } = req.body;
+
+    // Define the file path after upload
+    const filePath = `http://localhost:3001/uploads/files/${req.file.filename}`;
+
+    // Save the file upload record with the correct fields
+    const newFile = new FileModel({
+      username: name,  // username passed from the frontend
+      name: name,  // file name passed from the frontend
+      description,  // description passed from the frontend
+      filePath,  // the file path generated
+      mail: req.user.email,  // email of the authenticated user
+      tag,  // tag from the frontend
+    });
+
+    // Save the new file document to MongoDB
+    await newFile.save();
+
+    res.status(201).json({
+      message: "File uploaded successfully",
+      file: newFile,
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Server error: " + err.message });
+  }
+});
+
+
+
+
+// Fetch Video Upload History
 app.get("/api/uploadHistory", authenticateToken, async (req, res) => {
   try {
     const email = req.user.email;
@@ -189,6 +267,33 @@ app.get("/api/uploadHistory", authenticateToken, async (req, res) => {
     res.status(500).json({ message: "Server error: " + err.message });
   }
 });
+// Fetch File Upload History Route
+app.get("/api/fileUploadHistory", authenticateToken, async (req, res) => {
+  try {
+    const email = req.user.email;  // Use the authenticated user's email
+    const { page = 1, limit = 10 } = req.query;
+    const skip = (page - 1) * limit;
+
+    // Fetch file upload history for the logged-in user from the FileModel
+    const fileUploadHistory = await FileModel.find({ mail: email })  // Changed 'uploadedBy' to 'mail'
+      .skip(skip)
+      .limit(parseInt(limit))
+      .exec();
+
+    const totalFiles = await FileModel.countDocuments({ mail: email });  // Changed 'uploadedBy' to 'mail'
+
+    res.status(200).json({
+      fileUploadHistory: fileUploadHistory || [],
+      totalPages: Math.ceil(totalFiles / limit),
+      currentPage: parseInt(page),
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Server error: " + err.message });
+  }
+});
+
+
+
 
 const PORT = 3001;
 app.listen(PORT, () => {

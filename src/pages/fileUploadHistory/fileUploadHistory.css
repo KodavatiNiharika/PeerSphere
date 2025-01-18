@@ -1,0 +1,112 @@
+/* General Styles for File Upload History */
+.file-upload-history {
+    margin-top: 100px;
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+
+.file-upload-history-title {
+    text-align: center;
+    color: #363434;
+    margin-top: 100px; /* Added margin-top of 100px */
+    margin-bottom: 20px;
+    font-size: 2rem;
+}
+
+.file-upload-history-loading,
+.file-upload-history-error,
+.file-upload-history-no-uploads {
+    text-align: center;
+    color: #888;
+    font-size: 1.2em;
+}
+
+.file-upload-history-group {
+    margin-top: 100px;
+    margin: 20px 0;
+}
+
+.file-upload-history-task {
+    margin-bottom: 15px;
+    color: #444;
+    font-size: 1.5rem;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 5px;
+}
+
+h2 {
+    margin-top: 20px;
+}
+
+/* Flexbox Container for File Items */
+.file-upload-history-list {
+    display: flex; /* Use flexbox for layout */
+    flex-wrap: wrap; /* Allow wrapping to the next row */
+    gap: 10px; /* Reduce space between items */
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    justify-content: flex-start; /* Align items to the start */
+}
+
+/* File Item Styling */
+.file-upload-history-item {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    flex: 0 1 calc(30% - 10px); /* Each item takes up ~30% of the row minus spacing */
+    box-sizing: border-box; /* Include padding and borders in size */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.file-upload-history-item:hover {
+    transform: scale(1.03); /* Slight zoom effect on hover */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.file-upload-history-description {
+    font-size: 0.9em;
+    color: #666;
+    margin: 5px 0;
+    text-align: center;
+}
+
+.file-upload-history-link {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 8px 15px;
+    background-color: #007bff;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.file-upload-history-link:hover {
+    background-color: #0056b3;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .file-upload-history-item {
+        flex: 0 1 calc(45% - 10px); /* Adjust to 2 items per row on medium screens */
+    }
+}
+
+@media (max-width: 768px) {
+    .file-upload-history-item {
+        flex: 0 1 calc(100% - 10px); /* Single item per row on smaller screens */
+    }
+}
+
+@media (max-width: 480px) {
+    .file-upload-history-title {
+        font-size: 0.9rem;
+    }
+
+    .file-upload-history-description {
+        font-size: 0.8rem;
+    }
+}

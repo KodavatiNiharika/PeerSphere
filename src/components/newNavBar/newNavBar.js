@@ -26,6 +26,7 @@ function NewNavBar() {
         <nav>
             <Link to="/">Home</Link>
             <Link to="/videoUpload">Upload a Video</Link>
+            <Link to="/fileUpload">Upload a File</Link>
             <span onClick={toggleSidebar} className="profile-link">
                 Your Profile
             </span>

@@ -1,0 +1,5 @@
+Understanding of :
+	Amazon Alexa Skills Kit(ASK)
+	Google Assistant SDK
+	Microsoft Bot Framework
+NLP:

@@ -25,10 +25,10 @@ function Sidebar() {
           <Link to="/profile">Profile</Link>
         </li>
         <li>
-          <Link to="/uploadHistory">Upload History</Link>
+          <Link to="/uploadHistory">Video Upload History</Link>
         </li>
         <li>
-          <Link to="/videoUpload">Upload a Video</Link>
+          <Link to="/fileUploadHistory">File Upload History</Link>
         </li>
         <li>
           <Link to="/enrolled-courses">Enrolled Courses</Link>

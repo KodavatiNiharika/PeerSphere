@@ -10,6 +10,9 @@ import UploadHistory from "./pages/uploadHistory/uploadHistory";
 import Sidebar from "./components/sideBar/sideBar";
 import LogOut from "./components/logOut/logOut";
 import Navbar from "./components/navBar/Navbar";
+import FileUpload from "./pages/fileUpload/fileUpload";
+import FileUploadHistory from "./pages/fileUploadHistory/fileUploadHistory";
+
 function App() {
   return (
     <Router>
@@ -20,11 +23,12 @@ function App() {
         <Route path="/shareKnowledge" element={<ShareKnowledge />} />
         <Route path="/profile" element={<UserProfile />} />
         <Route path="/videoUpload" element={<VideoUpload />} /> {/* Add route for video upload */}
+        <Route path="/fileUpload" element={<FileUpload />} />
         <Route path="/uploadHistory" element={<UploadHistory />} />
         <Route path="/Sidebar" element={<Sidebar />} />
         <Route path="/logOut" element={<LogOut/>} />
-        <Route Path="/navbar" element={<Navbar/>} />
-
+        <Route path="/navbar" element={<Navbar/>} />
+        <Route path="/fileUploadHistory" element={<FileUploadHistory/>} />
       </Routes>
     </Router>
   );
