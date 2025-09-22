@@ -4,6 +4,7 @@
   flex-direction: column;
   min-height: 100vh;
   background-color: #f4f7fa;
+  font-family: 'Arial', sans-serif;
 }
 
 .content {
@@ -16,10 +17,12 @@
 
 .upload-history-title {
   margin-top: 90px;
-  font-size: 2rem;
+  font-size: 2.5rem;
+  font-weight: 700;
   color: #2b2d42;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
   text-align: center;
+  letter-spacing: 1px;
 }
 
 .search-bar-container {
@@ -30,108 +33,136 @@
 
 .error-message {
   color: #e63946;
-  font-size: 1rem;
-  margin: 10px 0;
+  font-size: 1.1rem;
+  margin: 15px 0;
   text-align: center;
+  font-weight: bold;
 }
 
 .no-videos {
   color: #2b2d42;
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   text-align: center;
+  margin-top: 50px;
 }
 
 .upload-history-group {
   width: 100%;
-  max-width: 900px;
+  max-width: 1100px; /* Increased max-width for a wider layout */
   background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
-  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+  padding: 30px;
 }
 
 .upload-history-task {
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   color: #1d3557;
-  margin-bottom: 15px;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 10px;
+  margin-bottom: 25px;
 }
 
 .upload-history-list {
   list-style-type: none;
   padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* Changed to create three equal columns */
+  gap: 25px;
 }
 
 .upload-history-item {
   display: flex;
   flex-direction: column;
-  margin-bottom: 20px;
   background-color: #f9f9f9;
-  border-radius: 6px;
-  padding: 15px;
-  transition: background-color 0.3s;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s, box-shadow 0.3s;
+  height: 100%; /* Ensures all items in a row have the same height */
 }
 
 .upload-history-item:hover {
-  background-color: #f1f1f1;
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
-.upload-history-video-title {
-  font-size: 1.2rem;
-  color: #1d3557;
-  margin-bottom: 10px;
-}
-
-.upload-history-video-description {
+.file-info-label {
   font-size: 1rem;
-  color: #333;
-  margin-bottom: 10px;
+  color: #1d3557;
+  font-weight: 600;
+  display: inline;
+}
+
+.upload-history-file-title {
+  font-size: 1rem;
+  color: #555;
+  line-height: 1.5;
+  margin-bottom: 15px;
+  display: inline;
+}
+
+.upload-history-video-title,
+.upload-history-file-title {
+  font-size: 1.3rem;
+  color: #1d3557;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.upload-history-video-description,
+.upload-history-file-description {
+  font-size: 1rem;
+  color: #555;
+  line-height: 1.5;
+  margin-bottom: 15px;
 }
 
 .upload-history-video {
   width: 100%;
-  max-width: 1300px; /* Increased from 700px to 1300px */
-  border-radius: 6px;
+  border-radius: 8px;
   background-color: #e9ecef;
+  margin-top: 10px;
 }
 
+.file-preview-image,
+.file-viewer-pdf {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+.upload-history-file-link {
+  display: inline-block;
+  background-color: #555;
+  color: white;
+  padding: 10px 15px;
+  text-decoration: none;
+  border-radius: 5px;
+  margin-top: auto; /* Pushes the download link to the bottom */
+  align-self: flex-start; /* Aligns the button to the left */
+}
+
+.upload-history-file-link:hover {
+  background-color: #f0a500;
+}
+
+
+/* Media Queries for Responsiveness */
+@media (max-width: 1200px) {
+  .upload-history-group {
+    max-width: 90%;
+  }
+}
 
 @media (max-width: 768px) {
   .upload-history-title {
-    font-size: 1.8rem;
+    font-size: 2rem;
   }
-
-  .upload-history-group {
-    padding: 15px;
-  }
-
-  .upload-history-task {
-    font-size: 1.25rem;
-  }
-
-  .upload-history-video-title {
-    font-size: 1.1rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .content {
-    padding: 10px;
-  }
-
-  .upload-history-title {
-    font-size: 1.5rem;
-  }
-
-  .upload-history-item {
-    padding: 10px;
-  }
-
-  .upload-history-video-title {
-    font-size: 1rem;
-  }
-
-  .upload-history-video {
-    max-width: 100%;
+  .upload-history-list {
+    grid-template-columns: 1fr;
   }
 }

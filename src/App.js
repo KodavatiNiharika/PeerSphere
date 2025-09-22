@@ -12,6 +12,7 @@ import LogOut from "./components/logOut/logOut";
 import Navbar from "./components/navBar/Navbar";
 import FileUpload from "./pages/fileUpload/fileUpload";
 import FileUploadHistory from "./pages/fileUploadHistory/fileUploadHistory";
+import NewNavBar from "./components/newNavBar/newNavBar";
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
         <Route path="/Sidebar" element={<Sidebar />} />
         <Route path="/logOut" element={<LogOut/>} />
         <Route path="/navbar" element={<Navbar/>} />
+        <Route path="/newNavBar" element={<NewNavBar/>}/>
         <Route path="/fileUploadHistory" element={<FileUploadHistory/>} />
       </Routes>
     </Router>

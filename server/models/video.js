@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const videoSchema = new mongoose.Schema({
   username: String,
   name: String,
+  title : String,
   description: String,
   videoPath: String,
   mail: String,

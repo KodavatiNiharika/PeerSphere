@@ -2,6 +2,28 @@ import React, { useState, useEffect } from "react";
 import "./fileUploadHistory.css";
 import NewNavBar from "../../components/newNavBar/newNavBar";
 
+// Helper function to render file content based on its type
+const renderFilePreview = (file) => {
+  if (!file || !file.filePath) {
+    return <p>Invalid file data.</p>;
+  }
+
+  const fileExtension = file.filePath.split('.').pop().toLowerCase();
+
+  switch (fileExtension) {
+    case 'jpg':
+    case 'jpeg':
+    case 'png':
+    case 'gif':
+      return <img src={file.filePath} alt={`Preview of ${file.title}`} className="file-preview-image" />;
+    case 'pdf':
+      return <iframe src={file.filePath} title={`Preview of ${file.title}`} className="file-viewer-pdf"></iframe>;
+    default:
+      // For other file types, provide a placeholder or a simple text
+      return <p className="file-preview-placeholder">No preview available for this file type.</p>;
+  }
+};
+
 const FileUploadHistory = () => {
   const [fileUploadHistory, setFileUploadHistory] = useState([]);
   const [groupedFiles, setGroupedFiles] = useState({});
@@ -76,16 +98,20 @@ const FileUploadHistory = () => {
               <ul className="file-upload-history-list">
                 {files.map((upload) => (
                   <li className="file-upload-history-item" key={upload._id || upload.filename}>
-                    <h4 className="file-upload-history-title">{upload.title}</h4>
+                    {/* Updated JSX to include "Title: " and "Description: " labels */}
+                    <h4 className="file-upload-history-item-title">Title: {upload.title}</h4>                    
+                    {/* Render the file preview */}
+                    {renderFilePreview(upload)}
+                    <p className="file-upload-history-description">Description: {upload.description}</p>
+                    {/* Download Link */}
                     <a
                       href={upload.filePath}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="file-upload-history-link"
                     >
-                      Download {upload.title}
+                      Download File
                     </a>
-                    <p className="file-upload-history-description">Description: {upload.description}</p>
                   </li>
                 ))}
               </ul>

@@ -50,9 +50,9 @@ const Register = () => {
         localStorage.setItem("token", token);
         localStorage.setItem("email", email);
 
-        setSuccess("Registration successful! Redirecting to login...");
+        setSuccess("Registration successful! Redirecting to home page...");
         setTimeout(() => {
-          navigate("/login");
+          navigate("/shareKnowledge");
         }, 2000);
       } else {
         setError(response.data.message || "Registration failed. Please try again.");
