@@ -53,11 +53,31 @@
 .chat-message.me {
   background-color: #d1e7dd;
   align-self: flex-end;
+  
+  width: 60%;           /* 60% of the chat window width */
+  min-height: 20px;     /* at least 20px height */
+  max-height: 20%;      /* maximum 20% of chat window height */
+  padding: 6px 10px;
+  border-radius: 10px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  display: flex;
+  flex-direction: column;
 }
 
 .chat-message.other {
   background-color: #f8d7da;
   align-self: flex-start;
+  
+  width: 60%;           /* 60% of the chat window width */
+  min-height: 20px;     /* at least 20px height */
+  max-height: 20%;      /* maximum 20% of chat window height */
+  padding: 6px 10px;
+  border-radius: 10px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  display: flex;
+  flex-direction: column;
 }
 
 .user-name {
