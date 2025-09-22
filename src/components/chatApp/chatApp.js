@@ -36,46 +36,48 @@ function ChatApp() {
     <div className="chat-app-wrapper">
       <PastChat /> {/* Sidebar */}
       <div className="main-content">
-        
+        <div className="current-chat">
+      {!chatStarted ? (
+        <input
+          type="email"
+          value={receiverEmail}
+          placeholder="Enter receiver email"
+          className="email-input-line"
+          onChange={(e) => setReceiverEmail(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && startChat()}
+        />
+      ) : (
+        <>
+          <div className="receiver-email">{receiverEmail}</div>
+          <div className="chat-window">
+            {messages.map((msg, index) => (
+              <div
+                key={index}
+                className={`chat-message ${msg.sender === "Me" ? "me" : "other"}`}
+              >
+                <span className="user-name">{msg.sender}:</span> {msg.text}
+              </div>
+            ))}
+            <div ref={chatEndRef}></div>
+          </div>
+          <div className="chat-input">
+            <input
+              type="text"
+              value={input}
+              placeholder="Type a message..."
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+            />
+            <button onClick={sendMessage}>Send</button>
+          </div>
+        </>
+      )}
+    </div>
+
         <NewNavBar /> {/* Navbar */}
         <button className="new-chat">New Chat</button>
-
-        <div className="current-chat">
-          {!chatStarted ? (
-            <input
-              type="email"
-              value={receiverEmail}
-              placeholder="Enter receiver email"
-              className="email-input-line"
-              onChange={(e) => setReceiverEmail(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && startChat()}
-            />
-          ) : (
-            <>
-              <div className="chat-window">
-                {messages.map((msg, index) => (
-                  <div
-                    key={index}
-                    className={`chat-message ${msg.sender === "Me" ? "me" : "other"}`}
-                  >
-                    <span className="user-name">{msg.sender}:</span> {msg.text}
-                  </div>
-                ))}
-                <div ref={chatEndRef}></div>
-              </div>
-              <div className="chat-input">
-                <input
-                  type="text"
-                  value={input}
-                  placeholder="Type a message..."
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                />
-                <button onClick={sendMessage}>Send</button>
-              </div>
-            </>
-          )}
-        </div>
+        <div className="receiver-email">{receiverEmail}</div>
+        
       </div>
     </div>
   );
