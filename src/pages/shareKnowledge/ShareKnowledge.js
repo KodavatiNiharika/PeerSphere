@@ -5,6 +5,30 @@ import SearchBar from "../../components/searchBar/searchBar";
 import "./ShareKnowledge.css";
 import NewNavBar from '../../components/newNavBar/newNavBar';
 
+// Helper function to render file content based on its type
+const renderFileContent = (file) => {
+  const fileExtension = file.filePath.split('.').pop().toLowerCase();
+
+  switch (fileExtension) {
+    case 'jpg':
+    case 'jpeg':
+    case 'png':
+    case 'gif':
+      return <img src={file.filePath} alt={file.title} className="file-preview-image" />;
+    case 'pdf':
+      return <iframe src={file.filePath} className="file-viewer-pdf" title={file.title}></iframe>;
+    default:
+      // For other file types, you can show a generic placeholder or an icon.
+      // This will ensure something is visible even without a full preview.
+      return (
+        <div className="file-placeholder">
+          <p>Preview not available</p>
+          <p>File Type: {fileExtension.toUpperCase()}</p>
+        </div>
+      );
+  }
+};
+
 function ShareKnowledge() {
   const [videosToView, setVideosToView] = useState([]);
   const [filesToView, setFilesToView] = useState([]);
@@ -18,38 +42,34 @@ function ShareKnowledge() {
     const token = localStorage.getItem("token");
     if (token) {
       // Fetch Videos
-      axios
-        .get("http://localhost:3001/videos", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        .then((res) => {
-          const videos = res.data.videos;
-          setVideosToView(videos);
-          groupVideosByTag(videos);
-        })
-        .catch((err) => {
-          setError("Error fetching videos. Please check your authentication.");
-          console.error("Error fetching videos:", err);
-        });
+      axios.get("http://localhost:3001/videos", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((res) => {
+        const videos = res.data.videos;
+        setVideosToView(videos);
+        groupVideosByTag(videos);
+      })
+      .catch((err) => {
+        console.error("Error fetching videos:", err);
+      });
 
       // Fetch Files
-      axios
-        .get("http://localhost:3001/files", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        .then((res) => {
-          const files = res.data.files;
-          setFilesToView(files);
-          groupFilesByTag(files);
-        })
-        .catch((err) => {
-          setError("Error fetching files. Please check your authentication.");
-          console.error("Error fetching files:", err);
-        });
+      axios.get("http://localhost:3001/files", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((res) => {
+        const files = res.data.files;
+        setFilesToView(files);
+        groupFilesByTag(files);
+      })
+      .catch((err) => {
+        console.error("Error fetching files:", err);
+      });
     } else {
       setError("You need to be logged in to view videos and files.");
     }
@@ -63,7 +83,7 @@ function ShareKnowledge() {
       return acc;
     }, {});
     setGroupedVideos(grouped);
-    setFilteredVideos(grouped); // Set initial filtered videos
+    setFilteredVideos(grouped);
   };
 
   const groupFilesByTag = (files) => {
@@ -74,7 +94,7 @@ function ShareKnowledge() {
       return acc;
     }, {});
     setGroupedFiles(grouped);
-    setFilteredFiles(grouped); // Set initial filtered files
+    setFilteredFiles(grouped);
   };
 
   const handleSearch = (searchTerm) => {
@@ -83,21 +103,18 @@ function ShareKnowledge() {
       setFilteredFiles(groupedFiles);
       return;
     }
-
     const filteredVideos = Object.entries(groupedVideos).reduce((acc, [tag, videos]) => {
       if (tag.toLowerCase().includes(searchTerm.toLowerCase())) {
         acc[tag] = videos;
       }
       return acc;
     }, {});
-
     const filteredFiles = Object.entries(groupedFiles).reduce((acc, [tag, files]) => {
       if (tag.toLowerCase().includes(searchTerm.toLowerCase())) {
         acc[tag] = files;
       }
       return acc;
     }, {});
-
     setFilteredVideos(filteredVideos);
     setFilteredFiles(filteredFiles);
   };
@@ -110,7 +127,7 @@ function ShareKnowledge() {
         <SearchBar onSearch={handleSearch} />
         {error && <p className="error-message">{error}</p>}
 
-        {/* Videos */}
+        {/* Videos rendering section remains the same */}
         {Object.keys(filteredVideos).length === 0 ? (
           <p className="no-videos">No videos found.</p>
         ) : (
@@ -120,7 +137,7 @@ function ShareKnowledge() {
               <ul className="upload-history-list">
                 {videos.map((video) => (
                   <li className="upload-history-item" key={video._id}>
-                    <h4 className="upload-history-video-title">{video.title}</h4>
+                    <p className="upload-history-video-title">{video.title}</p>
                     <h5>Description:</h5>
                     <p className="upload-history-video-description">{video.description}</p>
                     <video className="upload-history-video" controls>
@@ -134,7 +151,7 @@ function ShareKnowledge() {
           ))
         )}
 
-        {/* Files */}
+        {/* Files section */}
         {Object.keys(filteredFiles).length === 0 ? (
           <p className="no-files">No files found.</p>
         ) : (
@@ -142,18 +159,24 @@ function ShareKnowledge() {
             <div className="upload-history-group" key={tag}>
               <h3 className="upload-history-task">File Tag: {tag}</h3>
               <ul className="upload-history-list">
-                {files.map((file) => (
+                {files.map((file) => ( 
                   <li className="upload-history-item" key={file._id}>
-                    <h4 className="upload-history-file-title">{file.title}</h4>
-                    <h5>Description:</h5>
-                    <p className="upload-history-file-description">{file.description}</p>
+                    <p>
+                      <span className="file-info-label">Title: </span>
+                      <p className="upload-history-file-title">{file.title}</p>
+                    </p>
+                    <p>
+                      <span className="file-info-label">Description: </span>
+                      <p className="upload-history-file-description">{file.description}</p>
+                    </p>
+                    {renderFileContent(file)}
                     <a
                       href={file.filePath}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="upload-history-file-link"
                     >
-                      Download {file.title}
+                      Download File
                     </a>
                   </li>
                 ))}

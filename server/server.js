@@ -110,7 +110,7 @@ const videoStorage = multer.diskStorage({
 
 const videoUpload = multer({
   storage: videoStorage,
-  limits: { fileSize: 10 * 1024 * 1024 },
+  limits: { fileSize: 1000 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowedTypes = /mp4|mkv|avi/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
@@ -217,7 +217,7 @@ app.post("/fileUpload", authenticateToken, fileUpload.single("file"), async (req
     }
 
     // Destructure the incoming request body to capture the tag and description
-    const { name, description, tag } = req.body;
+    const { name, title, description, tag } = req.body;
 
     // Define the file path after upload
     const filePath = `http://localhost:3001/uploads/files/${req.file.filename}`;
@@ -226,6 +226,7 @@ app.post("/fileUpload", authenticateToken, fileUpload.single("file"), async (req
     const newFile = new FileModel({
       username: name,  // username passed from the frontend
       name: name,  // file name passed from the frontend
+      title,
       description,  // description passed from the frontend
       filePath,  // the file path generated
       mail: req.user.email,  // email of the authenticated user

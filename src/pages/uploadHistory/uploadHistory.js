@@ -79,7 +79,6 @@ const UploadHistory = () => {
               {videos.map((upload, index) => (
                 <li className="upload-history-item" key={index}>
                   <h4 className="upload-history-video-title">{upload.title}</h4>
-                  
                   <video className="upload-history-video" controls>
                     <source src={upload.videoPath} type="video/mp4" />
                     Your browser does not support the video tag.
