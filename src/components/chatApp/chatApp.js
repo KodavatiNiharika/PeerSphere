@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import NewNavBar from "../newNavBar/newNavBar";
 import PastChat from "../pastChat/pastChat";
+import axios from "axios";
 import "./chatApp.css";
 
 function ChatApp() {
@@ -10,74 +11,138 @@ function ChatApp() {
   const [messages, setMessages] = useState([]);
   const chatEndRef = useRef(null);
 
-  const startChat = () => {
-    if (receiverEmail.trim() !== "") setChatStarted(true);
+  const token = localStorage.getItem("token");
+  const senderEmail = localStorage.getItem("email");
+  const senderUsername = localStorage.getItem("username") || "You";
+
+  // Fetch messages between logged-in user and receiver
+  const fetchMessages = async () => {
+    if (!receiverEmail) return;
+
+    try {
+      const response = await axios.get("http://localhost:3001/api/messages", {
+        params: { senderEmail, receiverEmail },
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setMessages(response.data.messages);
+    } catch (err) {
+      console.error("Error fetching messages:", err);
+    }
   };
 
-  const sendMessage = () => {
-    if (input.trim() === "") return;
-    setMessages([...messages, { sender: "Me", text: input }]);
-    setInput("");
+  // Start chat
+  const startChat = async () => {
+    if (!receiverEmail.trim()) return;
 
-    // Simulate reply for demo
-    setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        { sender: receiverEmail, text: "Reply from " + receiverEmail },
+    if (receiverEmail === senderEmail) {
+      alert("You cannot start a chat with yourself.");
+      return;
+    }
+
+    setChatStarted(true);
+    await fetchMessages();
+  };
+
+  // Send a message
+  const sendMessage = async () => {
+    if (!input.trim()) return;
+
+    if (receiverEmail === senderEmail) {
+      alert("You cannot send messages to yourself.");
+      return;
+    }
+
+    const newMsg = { senderEmail, receiverEmail, text: input };
+
+    try {
+      // Add locally for instant UI update
+      setMessages([
+        ...messages,
+        {
+          senderId: { email: senderEmail, username: senderUsername },
+          text: input,
+          createdAt: new Date().toISOString(), // add current timestamp
+        },
       ]);
-    }, 1000);
+      setInput("");
+
+      // Send to server
+      await axios.post("http://localhost:3001/api/messages", newMsg, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // Optionally, refetch messages to sync server timestamps
+      // await fetchMessages();
+    } catch (err) {
+      console.error("Error sending message:", err);
+    }
   };
 
+  // Scroll to bottom when messages update
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Helper to format timestamp nicely
+  const formatTimestamp = (timestamp) => {
+    if (!timestamp) return "";
+    const date = new Date(timestamp);
+    return date.toLocaleString(); // e.g., "9/22/2025, 7:45:00 PM"
+  };
+
   return (
     <div className="chat-app-wrapper">
-      <PastChat /> {/* Sidebar */}
+      <PastChat />
       <div className="main-content">
-        <div className="current-chat">
-      {!chatStarted ? (
-        <input
-          type="email"
-          value={receiverEmail}
-          placeholder="Enter receiver email"
-          className="email-input-line"
-          onChange={(e) => setReceiverEmail(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && startChat()}
-        />
-      ) : (
-        <>
-          <div className="receiver-email">{receiverEmail}</div>
-          <div className="chat-window">
-            {messages.map((msg, index) => (
-              <div
-                key={index}
-                className={`chat-message ${msg.sender === "Me" ? "me" : "other"}`}
-              >
-                <span className="user-name">{msg.sender}:</span> {msg.text}
-              </div>
-            ))}
-            <div ref={chatEndRef}></div>
-          </div>
-          <div className="chat-input">
-            <input
-              type="text"
-              value={input}
-              placeholder="Type a message..."
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-            />
-            <button onClick={sendMessage}>Send</button>
-          </div>
-        </>
-      )}
-    </div>
-
-        <NewNavBar /> {/* Navbar */}
+        <NewNavBar />
         <button className="new-chat">New Chat</button>
-        <div className="receiver-email">{receiverEmail}</div>
-        
+
+        <div className="current-chat">
+          {!chatStarted ? (
+            <input
+              type="email"
+              value={receiverEmail}
+              placeholder="Enter receiver email"
+              className="email-input-line"
+              onChange={(e) => setReceiverEmail(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && startChat()}
+            />
+          ) : (
+            <>
+              <div className="receiver-email">{receiverEmail}</div>
+              <div className="chat-window">
+                {messages.map((msg, index) => {
+                  const isMe =
+                    msg.senderId?.email === senderEmail ||
+                    msg.senderId === senderEmail;
+
+                  return (
+                    <div key={index} className={`chat-message ${isMe ? "me" : "other"}`}>
+                      <span className="user-name">
+                        {isMe ? "Me" : msg.senderId?.username || msg.senderId?.email}:
+                      </span>{" "}
+                      {msg.text}
+                      <div className="message-timestamp">
+                        {formatTimestamp(msg.createdAt)}
+                      </div>
+                    </div>
+                  );
+                })}
+                <div ref={chatEndRef}></div>
+              </div>
+              <div className="chat-input">
+                <input
+                  type="text"
+                  value={input}
+                  placeholder="Type a message..."
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                />
+                <button onClick={sendMessage}>Send</button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -296,30 +296,12 @@ app.get("/api/fileUploadHistory", authenticateToken, async (req, res) => {
 
 
 
-app.get('/api/messages', async (req, res) => {
-  const { senderId, receiverId } = req.query;
 
-  try {
-    const messages = await MessageModel.find({
-      $or: [
-        { senderId, receiverId },
-        { senderId: receiverId, receiverId: senderId }
-      ]
-    })
-      .populate('senderId', 'name email')   // fetch sender name + email
-      .populate('receiverId', 'name email') // fetch receiver name + email
-      .sort({ createdAt: 1 });
-
-    res.json({ messages });
-  } catch (err) {
-    res.status(500).json({ error: 'Error fetching messages' });
-  }
-});
 
 app.get('/api/users/findByEmail', async (req, res) => {
   const { email } = req.query;
   try {
-    const user = await Student.findOne({ email });
+    const user = await StudentModel.findOne({ email });
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -332,6 +314,92 @@ app.get('/api/users/findByEmail', async (req, res) => {
     res.status(500).json({ error: 'Error fetching user' });
   }
 });
+ 
+app.post('/api/messages', async (req, res) => {
+  try {
+    const { senderEmail, receiverEmail, text } = req.body;
+
+    if (!senderEmail || !receiverEmail || !text) {
+      return res.status(400).json({ message: "senderEmail, receiverEmail and text are required" });
+    }
+
+    // Find sender
+    const sender = await StudentModel.findOne({ email: senderEmail });
+    if (!sender) {
+      return res.status(404).json({ message: "Sender not found. Please login again." });
+    }
+
+    // Find receiver
+    const receiver = await StudentModel.findOne({ email: receiverEmail });
+    if (!receiver) {
+      return res.status(404).json({ message: "Receiver email is not registered on this website." });
+    }
+
+    // Prevent sending message to self
+    if (sender._id.toString() === receiver._id.toString()) {
+      return res.status(400).json({ message: "You cannot send a message to yourself." });
+    }
+
+    // Save message
+    const newMessage = new MessageModel({
+      senderId: sender._id,
+      receiverId: receiver._id,
+      text,
+    });
+
+    await newMessage.save();
+
+    res.status(201).json({ message: "Message sent successfully", newMessage });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error: " + err.message });
+  }
+});
+
+
+
+
+// GET /api/messages?senderEmail=...&receiverEmail=...
+app.get('/api/messages', async (req, res) => {
+  try {
+    const { senderEmail, receiverEmail } = req.query;
+
+    if (!senderEmail || !receiverEmail) {
+      return res.status(400).json({ message: "senderEmail and receiverEmail are required" });
+    }
+
+    // Validate sender
+    const sender = await StudentModel.findOne({ email: senderEmail });
+    if (!sender) {
+      return res.status(404).json({ message: "Sender not found" });
+    }
+
+    // Validate receiver
+    const receiver = await StudentModel.findOne({ email: receiverEmail });
+    if (!receiver) {
+      return res.status(404).json({ message: "Receiver email is not registered on this website" });
+    }
+
+    // Get messages safely
+    const messages = await MessageModel.find({
+      $or: [
+        { senderId: sender._id, receiverId: receiver._id },
+        { senderId: receiver._id, receiverId: sender._id }
+      ]
+    })
+      .populate("senderId", "username email")
+      .populate("receiverId", "username email")
+      .sort({ createdAt: 1 });
+
+    res.json({ messages });
+  } catch (err) {
+    console.error("Error fetching messages:", err.message);
+    res.status(500).json({ message: "Server error: " + err.message });
+  }
+});
+
+
+
 
 const PORT = 3001;
 app.listen(PORT, () => {
