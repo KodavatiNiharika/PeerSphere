@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import './newNavBar.css';
 import Sidebar from "../sideBar/sideBar"; // Corrected path to the Sidebar component
-import VideoUpload from "../../pages/videoUpload/videoUpload";
 function NewNavBar() {
     const [showSidebar, setShowSidebar] = useState(false);
     const navigate = useNavigate();
@@ -27,6 +26,7 @@ function NewNavBar() {
             <Link to="/">Home</Link>
             <Link to="/videoUpload">Upload a Video</Link>
             <Link to="/fileUpload">Upload a File</Link>
+            <Link to="/chat"> Chat </Link>
             <span onClick={toggleSidebar} className="profile-link">
                 Your Profile
             </span>

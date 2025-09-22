@@ -11,6 +11,7 @@ require("dotenv").config();
 const StudentModel = require("./models/student");
 const VideoModel = require("./models/video");
 const FileModel = require("./models/file");
+const MessageModel = require("./models/message")
 
 const app = express();
 
@@ -295,8 +296,46 @@ app.get("/api/fileUploadHistory", authenticateToken, async (req, res) => {
 
 
 
+app.get('/api/messages', async (req, res) => {
+  const { senderId, receiverId } = req.query;
+
+  try {
+    const messages = await MessageModel.find({
+      $or: [
+        { senderId, receiverId },
+        { senderId: receiverId, receiverId: senderId }
+      ]
+    })
+      .populate('senderId', 'name email')   // fetch sender name + email
+      .populate('receiverId', 'name email') // fetch receiver name + email
+      .sort({ createdAt: 1 });
+
+    res.json({ messages });
+  } catch (err) {
+    res.status(500).json({ error: 'Error fetching messages' });
+  }
+});
+
+app.get('/api/users/findByEmail', async (req, res) => {
+  const { email } = req.query;
+  try {
+    const user = await Student.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json({
+      _id: user._id,
+      name: user.name,
+      email: user.email
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Error fetching user' });
+  }
+});
 
 const PORT = 3001;
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+
