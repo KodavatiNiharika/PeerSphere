@@ -20,7 +20,7 @@ function ChatApp() {
     if (!receiverEmail) return;
 
     try {
-      const response = await axios.get(" https://peersphere-3.onrender.com/api/messages", {
+      const response = await axios.get("https://peersphere-3.onrender.com/api/messages", {
         params: { senderEmail, receiverEmail },
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -67,7 +67,7 @@ function ChatApp() {
       setInput("");
 
       // Send to server
-      await axios.post("http://localhost:3001/api/messages", newMsg, {
+      await axios.post("https://peersphere-3.onrender.com/api/messages", newMsg, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
