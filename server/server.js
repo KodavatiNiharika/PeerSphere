@@ -21,7 +21,7 @@ const allowedOrigins = [
   "http://localhost:3000",
   "https://peersphere-5.onrender.com"
 ];
-
+const BASE_URL = process.env.BACKEND_URL || "http://localhost:3001";
 app.use(cors({
   origin: function(origin, callback) {
     // allow requests with no origin (like Postman)
@@ -212,7 +212,7 @@ app.post("/videoUpload", authenticateToken, videoUpload.single("video"), async (
     if (!req.file) {
       return res.status(400).json({ message: "No file uploaded" });
     }
-    const videoPath = `http://localhost:3001/uploads/videos/${req.file.filename}`;
+    const videoPath = `${BASE_URL}/uploads/videos/${req.file.filename}`;
     const newVideo = new VideoModel({
       title,
       videoPath,
@@ -227,6 +227,9 @@ app.post("/videoUpload", authenticateToken, videoUpload.single("video"), async (
   }
 });
 
+
+
+
 // General File Upload Route
 app.post("/fileUpload", authenticateToken, fileUpload.single("file"), async (req, res) => {
   try {
@@ -238,7 +241,7 @@ app.post("/fileUpload", authenticateToken, fileUpload.single("file"), async (req
     const { name, title, description, tag } = req.body;
 
     // Define the file path after upload
-    const filePath = `http://localhost:3001/uploads/files/${req.file.filename}`;
+    const filePath = `${BASE_URL}/uploads/files/${req.file.filename}`;
 
     // Save the file upload record with the correct fields
     const newFile = new FileModel({
