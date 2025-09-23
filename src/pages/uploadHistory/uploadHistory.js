@@ -18,7 +18,7 @@ const UploadHistory = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:3001/api/uploadHistory", {
+      const response = await fetch(" https://peersphere-3.onrender.com/api/uploadHistory", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
