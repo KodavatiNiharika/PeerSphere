@@ -28,7 +28,7 @@ const Login = () => {
     const loginData = { email, password }; // Prepare data for the request
 
     try {
-      const response = await axios.post("http://localhost:3001/login", loginData);
+      const response = await axios.post(" https://peersphere-3.onrender.com/login", loginData);
 
       if (response.data.message === "Login successful") {
         // Extract the token and user data
