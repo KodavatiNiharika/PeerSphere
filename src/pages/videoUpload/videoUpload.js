@@ -47,7 +47,7 @@ function VideoUpload() {
     const token = localStorage.getItem("token"); // Ensure the token exists
 
     try {
-      const response = await axios.post("http://localhost:3001/videoUpload", formData, {
+      const response = await axios.post(" https://peersphere-3.onrender.com/videoUpload", formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data", // Ensure multipart format
