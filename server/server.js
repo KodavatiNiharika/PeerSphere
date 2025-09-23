@@ -16,24 +16,10 @@ const MessageModel = require("./models/message")
 const app = express();
 
 // Middleware
-app.use(express.json());
-const allowedOrigins = [
-  "http://localhost:3000",
-  "https://peersphere-5.onrender.com"
-];
 const BASE_URL = process.env.BACKEND_URL || "http://localhost:3001";
-app.use(cors({
-  origin: function(origin, callback) {
-    // allow requests with no origin (like Postman)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
-    }
-    return callback(null, true);
-  },
-  credentials: true
-}));
+app.use(express.json());
+app.use(cors({ origin: "*" }));
+
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
