@@ -40,7 +40,7 @@ const FileUploadHistory = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:3001/api/fileUploadHistory", {
+      const response = await fetch(" https://peersphere-3.onrender.com/api/fileUploadHistory", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
