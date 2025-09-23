@@ -37,7 +37,7 @@ const Register = () => {
     setSuccess("");
 
     try {
-      const response = await axios.post("http://localhost:3001/register", {
+      const response = await axios.post(" https://peersphere-3.onrender.com/register", {
         username,
         email,
         password,
