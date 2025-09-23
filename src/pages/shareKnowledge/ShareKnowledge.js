@@ -42,7 +42,7 @@ function ShareKnowledge() {
     const token = localStorage.getItem("token");
     if (token) {
       // Fetch Videos
-      axios.get("http://localhost:3001/videos", {
+      axios.get(" https://peersphere-3.onrender.com/videos", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
