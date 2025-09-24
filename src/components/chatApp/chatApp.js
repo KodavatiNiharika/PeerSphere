@@ -132,7 +132,7 @@ function ChatApp() {
                 {messages.map((msg, index) => {
                   const isMe =
                     msg.senderId?.email === senderEmail;
-
+                    console.log("Added",msg.senderId);
                   return (
                     <div key={index} className={`chat-message ${isMe ? "me" : "other"}`}>
                       <span className="user-name">
