@@ -23,6 +23,7 @@ function ChatApp() {
     });
     socketRef.current.emit("join", senderEmail);
     socketRef.current.on("receiveMessage", (msg) =>{
+      if(msg.senderEmail == senderEmail) return;
       setMessages((prev) => [...prev, {
         senderId : {email:msg.senderEmail, username : msg.senderEmail},
         text:msg.text,
