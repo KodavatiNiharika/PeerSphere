@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import {io} from "socket.io-client";
 import NewNavBar from "../newNavBar/newNavBar";
 import PastChat from "../pastChat/pastChat";
 import axios from "axios";
@@ -14,6 +15,25 @@ function ChatApp() {
   const token = localStorage.getItem("token");
   const senderEmail = localStorage.getItem("email");
   const senderUsername = localStorage.getItem("username") || "You";
+  const socketRef = useRef(null);
+  useEffect(() => {
+    socketRef.current = io("https://peersphere-3.onrender.com", {
+      path: "/socket.io",
+      transports : ["websocket"],
+    });
+    socketRef.current.emit("join", senderEmail);
+    socketRef.current.on("receiveMessage", (msg) =>{
+      setMessages((prev) => [...prev, {
+        senderId : {email:msg.senderEmail, username : msg.senderEmail},
+        text:msg.text,
+        createdAt:msg.createdAt,
+      }]);
+    });
+    return() => {
+      socketRef.current.disconnect();
+    };
+  }, [senderEmail]);
+
 
   // Fetch messages between logged-in user and receiver
   const fetchMessages = async () => {
@@ -56,8 +76,8 @@ function ChatApp() {
 
     try {
       // Add locally for instant UI update
-      setMessages([
-        ...messages,
+      setMessages((prev) => [
+        ...prev, //if u use ...messages, then u may miss the previous updated data
         {
           senderId: { email: senderEmail, username: senderUsername },
           text: input,
@@ -66,10 +86,7 @@ function ChatApp() {
       ]);
       setInput("");
 
-      // Send to server
-      await axios.post("https://peersphere-3.onrender.com/api/messages", newMsg, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      socketRef.current.emit("sendMessage", newMsg);
 
       // Optionally, refetch messages to sync server timestamps
       // await fetchMessages();
@@ -113,8 +130,7 @@ function ChatApp() {
               <div className="chat-window">
                 {messages.map((msg, index) => {
                   const isMe =
-                    msg.senderId?.email === senderEmail ||
-                    msg.senderId === senderEmail;
+                    msg.senderId?.email === senderEmail;
 
                   return (
                     <div key={index} className={`chat-message ${isMe ? "me" : "other"}`}>

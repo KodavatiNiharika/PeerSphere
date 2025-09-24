@@ -320,7 +320,8 @@ app.get('/api/users/findByEmail', async (req, res) => {
     res.status(500).json({ error: 'Error fetching user' });
   }
 });
- 
+
+
 app.post('/api/messages', async (req, res) => {
   try {
     const { senderEmail, receiverEmail, text } = req.body;
@@ -404,12 +405,60 @@ app.get('/api/messages', async (req, res) => {
   }
 });
 
-
-
-
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+const http = require("http");
+const {Server} = require("socket.io")
+const server = http.createServer(app);
+const io = new Server(server, {
+  path: "/socket.io",
+  cors : {
+    origin : "*",
+    methods :["GET", "POST"],
+  },
 });
 
+io.on("connection", (socket) =>{ // fires when a client successfully connects
+console.log("User connected :", socket.id);
+socket.on("join", (email) => {
+  socket.join(email);
+  console.log(`${email} joined their room`);
+});
+socket.on("sendMessage", async({senderEmail, receiverEmail, text}) => {
+  try {
+    const sender = await StudentModel.findOne({email : senderEmail});
+    const receiver = await StudentModel.findOne({email : receiverEmail});
+    if(!sender || !receiver) return ;
+    const newMessage = new MessageModel({
+      senderId : sender._id,
+      receiverId : receiver._id,
+      text,
+    });
+    await newMessage.save();
+    io.to(receiverEmail).emit("receiveMessage", {
+      senderEmail,
+      receiverEmail,
+      text,
+      createdAt : newMessage.createdAt,
+    });
+    io.to(senderEmail).emit("receiveMessage", {
+      senderEmail,
+      receiverEmail,
+      text,
+      createdAt : newMessage.createdAt,
+    });
+  } catch(err) {
+    console.error("Error saving message : ", err.message);
+  }
+});
+socket.on("disconnect", () => {
+  console.log("User disconnected : ", socket.id);
+});
+});
+
+const PORT = process.env.PORT || 3001;
+server.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
+/* previously for http connections, we used app, but it wont let u know the reference, so u can't attach socket.IO
+So we created server, so both the websocket events and HTTP requests(via Express) share common server.
+*/
 
