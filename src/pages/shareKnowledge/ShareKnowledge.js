@@ -136,7 +136,7 @@ function ShareKnowledge() {
                     <h5>Description:</h5>
                     <p className="upload-history-video-description">{video.description}</p>
                     <video className="upload-history-video" controls>
-                      <source src={video.videoPath} type="video/mp4" />
+                      <source src={`https://peersphere-3.onrender.com/video/${video._id}`} type="video/mp4" />
                       Your browser does not support the video tag.
                     </video>
                   </li>
@@ -156,14 +156,14 @@ function ShareKnowledge() {
               <ul className="upload-history-list">
                 {files.map((file) => ( 
                   <li className="upload-history-item" key={file._id}>
-                    <p>
+                    <div>
                       <span className="file-info-label">Title: </span>
-                      <p className="upload-history-file-title">{file.title}</p>
-                    </p>
-                    <p>
+                      <span className="upload-history-file-title">{file.title}</span>
+                    </div>
+                    <div>
                       <span className="file-info-label">Description: </span>
-                      <p className="upload-history-file-description">{file.description}</p>
-                    </p>
+                      <span className="upload-history-file-description">{file.description}</span>
+                    </div>
                     {renderFileContent(file)}
                     <a
                       href={file.filePath}
