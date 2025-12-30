@@ -48,12 +48,12 @@ function ShareKnowledge() {
 
     try {
 
-      const fileRes = await axios.get("http://localhost:3001/files", { headers: { Authorization: `Bearer ${token}` } });
+      const fileRes = await axios.get("https://peersphere-3.onrender.com/files", { headers: { Authorization: `Bearer ${token}` } });
       const files = fileRes.data.files || [];
       setFilesToView(files);
       groupFilesByTag(files);
 
-      const videoRes = await axios.get("http://localhost:3001/videos", { headers: { Authorization: `Bearer ${token}` } });
+      const videoRes = await axios.get("https://peersphere-3.onrender.com/videos", { headers: { Authorization: `Bearer ${token}` } });
       const videos = videoRes.data.videos || [];
       setVideosToView(videos);
       groupVideosByTag(videos);
