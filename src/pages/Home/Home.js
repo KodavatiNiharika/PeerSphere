@@ -1,6 +1,5 @@
 import React from "react";
 import Navbar from '../../components/navBar/Navbar'
-import PostList from "../../components/PostList";
 import './Home.css';
 import NewNavBar from "../../components/newNavBar/newNavBar";
 import ShareKnowledge from "../shareKnowledge/ShareKnowledge";
@@ -18,3 +17,6 @@ function Home() {
 }
 
 export default Home;
+
+
+//hooks
