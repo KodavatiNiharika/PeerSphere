@@ -152,9 +152,6 @@ app.get("/videos", authenticateToken, async (req, res) => {
     // Fetch all videos (without pagination)
     const videos = await VideoModel.find().exec();
     
-    if (videos.length === 0) {
-      return res.status(404).json({ message: "No videos found" });
-    }
     // Add full video path to each video object
     const videoData = videos.map((video) => ({
       ...video._doc,
@@ -174,9 +171,6 @@ app.get("/files", authenticateToken, async (req, res) => {
     // Fetch all files (without pagination)
     const files = await FileModel.find().exec();
     
-    if (files.length === 0) {
-      return res.status(404).json({ message: "No files found" });
-    }
     // Add full video path to each video object
     const fileData = files.map((file) => ({
       ...file._doc,

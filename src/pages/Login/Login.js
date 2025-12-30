@@ -60,7 +60,7 @@ const Login = () => {
       setLoading(false); // Reset loading state
     }
   };
-
+//JSX sees the {handleSubmit} and evaluates it as a JavaScript expression it finds that handleSubmit is a function.
   return (
     <>
       <Navbar />
