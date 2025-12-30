@@ -39,70 +39,36 @@ function ShareKnowledge() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-  const fetchData = async () => {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    setError("You need to be logged in to view videos and files.");
-    return;
-  }
+    const fetchData = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("You need to be logged in to view videos and files.");
+      return;
+    }
 
-  try {
+    try {
 
-    const fileRes = await axios.get("http://localhost:3001/files", { headers: { Authorization: `Bearer ${token}` } });
-    const files = fileRes.data.files || [];
-    setFilesToView(files);
-    groupFilesByTag(files);
+      const fileRes = await axios.get("http://localhost:3001/files", { headers: { Authorization: `Bearer ${token}` } });
+      const files = fileRes.data.files || [];
+      setFilesToView(files);
+      groupFilesByTag(files);
 
-    const videoRes = await axios.get("http://localhost:3001/videos", { headers: { Authorization: `Bearer ${token}` } });
-    const videos = videoRes.data.videos || [];
-    setVideosToView(videos);
-    groupVideosByTag(videos);
-    
+      const videoRes = await axios.get("http://localhost:3001/videos", { headers: { Authorization: `Bearer ${token}` } });
+      const videos = videoRes.data.videos || [];
+      setVideosToView(videos);
+      groupVideosByTag(videos);
+      
 
-  } catch (err) {
-    console.error(err);
-    setError("Failed to fetch videos/files.");
-  }
-};
-fetchData();
+    } catch (err) {
+      console.error(err);
+      setError("Failed to fetch videos/files.");
+    }
+  };
+  fetchData();
+  const intervalId = setInterval(fetchData, 5000); // poll every 5 seconds
+
+  return () => clearInterval(intervalId); // cleanup on unmount
   },[]);
-
-  // useEffect(() => {
-  //   const token = localStorage.getItem("token");
-  //   if (token) {
-  //     // Fetch Videos
-  //     axios.get("http://localhost:3001/videos", {
-  //       headers: {
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //     })
-  //     .then((res) => {
-  //       const videos = res.data.videos;
-  //       setVideosToView(videos);
-  //       groupVideosByTag(videos);
-  //     })
-  //     .catch((err) => {
-  //       console.error("Error fetching videos:", err);
-  //     });
-
-  //     // Fetch Files
-  //     axios.get("http://localhost:3001/files", {
-  //       headers: {
-  //         Authorization: `Bearer ${token}`, // y this bearer
-  //       },
-  //     })
-  //     .then((res) => {
-  //       const files = res.data.files;
-  //       setFilesToView(files);
-  //       groupFilesByTag(files);
-  //     })
-  //     .catch((err) => {
-  //       console.error("Error fetching files:", err);
-  //     });
-  //   } else {
-  //     setError("You need to be logged in to view videos and files.");
-  //   }
-  // }, []);
 
   const groupVideosByTag = (videos) => {
     const grouped = videos.reduce((acc, video) => {
