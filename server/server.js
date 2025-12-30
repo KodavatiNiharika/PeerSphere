@@ -6,7 +6,11 @@ const path = require("path");
 const fs = require("fs");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const storage = multer.memoryStorage();
+const streamifier = require("streamifier");
 require("dotenv").config();
+const videoUpload = multer({ storage: multer.memoryStorage() });
+const fileUpload = multer({ storage: multer.memoryStorage() });
 
 const StudentModel = require("./models/student");
 const VideoModel = require("./models/video");
@@ -21,7 +25,6 @@ app.use(express.json());
 app.use(cors({ origin: "*" }));
 
 
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Register Route
 app.post("/register", async (req, res) => {
@@ -98,52 +101,6 @@ mongoose
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
-// Multer Configuration for Video Uploads
-const videoStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = "./uploads/videos";
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
-  },
-});
-
-const videoUpload = multer({
-  storage: videoStorage,
-  limits: { fileSize: 1000 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = /mp4|mkv|avi/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
-    if (extname && mimetype) {
-      return cb(null, true);
-    }
-    cb(new Error("Invalid file type. Only video files are allowed."));
-  },
-});
-
-// Multer Configuration for General File Uploads
-const fileStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = "./uploads/files";
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
-  },
-});
-
-const fileUpload = multer({
-  storage: fileStorage,
-  limits: { fileSize: 5 * 1024 * 1024 },
-});
 
 // Routes
 // Video Upload Route
@@ -189,19 +146,27 @@ app.get("/files", authenticateToken, async (req, res) => {
 app.post("/videoUpload", authenticateToken, videoUpload.single("video"), async (req, res) => {
   try {
     const { title, description, tag } = req.body;
-    if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded" });
-    }
-    const videoPath = `${BASE_URL}/uploads/videos/${req.file.filename}`;
-    const newVideo = new VideoModel({
-      title,
-      videoPath,
-      description,
-      tag,
-      mail: req.user.email,
-    });
-    await newVideo.save();
-    res.status(201).json({ message: "Video uploaded successfully", video: newVideo });
+
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { resource_type: "video", folder: "peersphere/videos" },
+      async (error, result) => {
+        if (error) return res.status(500).json({ message: error.message });
+
+        const newVideo = new VideoModel({
+          title,
+          videoPath: result.secure_url,
+          description,
+          tag,
+          mail: req.user.email,
+        });
+
+        await newVideo.save();
+        res.status(201).json({ message: "Video uploaded successfully", video: newVideo });
+      }
+    );
+
+    streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
+
   } catch (err) {
     res.status(500).json({ message: "Server error: " + err.message });
   }
@@ -213,34 +178,33 @@ app.post("/videoUpload", authenticateToken, videoUpload.single("video"), async (
 // General File Upload Route
 app.post("/fileUpload", authenticateToken, fileUpload.single("file"), async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded" });
-    }
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
     // Destructure the incoming request body to capture the tag and description
     const { name, title, description, tag } = req.body;
 
-    // Define the file path after upload
-    const filePath = `${BASE_URL}/uploads/files/${req.file.filename}`;
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { resource_type: "raw", folder: "peersphere/files" },
+      async (error, result) => {
+        if (error) return res.status(500).json({ message: error.message });
 
-    // Save the file upload record with the correct fields
-    const newFile = new FileModel({
-      username: name,  // username passed from the frontend
-      name: name,  // file name passed from the frontend
-      title,
-      description,  // description passed from the frontend
-      filePath,  // the file path generated
-      mail: req.user.email,  // email of the authenticated user
-      tag,  // tag from the frontend
-    });
+        const newFile = new FileModel({
+          username: name,
+          name,
+          title,
+          description,
+          filePath: result.secure_url,
+          mail: req.user.email,
+          tag,
+        });
 
-    // Save the new file document to MongoDB
-    await newFile.save();
+        await newFile.save();
+        res.status(201).json({ message: "File uploaded successfully", file: newFile });
+      }
+    );
 
-    res.status(201).json({
-      message: "File uploaded successfully",
-      file: newFile,
-    });
+    streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
+
   } catch (err) {
     res.status(500).json({ message: "Server error: " + err.message });
   }
@@ -398,6 +362,22 @@ app.get('/api/messages', async (req, res) => {
     res.status(500).json({ message: "Server error: " + err.message });
   }
 });
+
+// Serve a single video by ID
+app.get("/video/:id", authenticateToken, async (req, res) => {
+  const video = await VideoModel.findById(req.params.id);
+  if (!video) return res.status(404).send("Video not found");
+  // redirect to Cloudinary URL
+  res.redirect(video.videoPath);
+});
+
+// Serve a single file by ID
+app.get("/file/:id", authenticateToken, async (req, res) => {
+  const file = await FileModel.findById(req.params.id);
+  if (!file) return res.status(404).send("File not found");
+  res.redirect(file.filePath);
+});
+
 
 const http = require("http");
 const {Server} = require("socket.io")
