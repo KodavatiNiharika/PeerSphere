@@ -3,7 +3,7 @@ import axios from "axios";
 import NewNavBar from "../../components/newNavBar/newNavBar";
 import './fileUpload.css';
 import { useNavigate } from 'react-router-dom';
-
+const backend_url = process.env.REACT_APP_BACKEND_URL;
 function FileUpload() {
   const navigate = useNavigate();
   const [fileDetails, setFileDetails] = useState({
@@ -46,11 +46,10 @@ function FileUpload() {
     const token = localStorage.getItem("token"); // Ensure the token exists
 
     try {
-      const response = await axios.post(" https://peersphere-3.onrender.com/fileUpload", formData, {
+      const response = await axios.post(`${backend_url}/fileUpload`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data", // Ensure multipart format
-        },
+       },
       });
 
       alert(response.data.message || "File uploaded successfully.");

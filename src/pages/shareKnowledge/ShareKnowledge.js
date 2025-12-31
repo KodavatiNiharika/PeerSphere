@@ -4,7 +4,7 @@ import Sidebar from "../../components/sideBar/sideBar";
 import SearchBar from "../../components/searchBar/searchBar";
 import "./ShareKnowledge.css";
 import NewNavBar from '../../components/newNavBar/newNavBar';
-
+const backend_url = process.env.REACT_APP_BACKEND_URL;
 // Helper function to render file content based on its type
 const renderFileContent = (file) => {
   const fileExtension = file.filePath.split('.').pop().toLowerCase();
@@ -48,12 +48,12 @@ function ShareKnowledge() {
 
     try {
 
-      const fileRes = await axios.get("https://peersphere-3.onrender.com/files", { headers: { Authorization: `Bearer ${token}` } });
+      const fileRes = await axios.get(`${backend_url}/files`, { headers: { Authorization: `Bearer ${token}` } });
       const files = fileRes.data.files || [];
       setFilesToView(files);
       groupFilesByTag(files);
 
-      const videoRes = await axios.get("https://peersphere-3.onrender.com/videos", { headers: { Authorization: `Bearer ${token}` } });
+      const videoRes = await axios.get(`${backend_url}/videos`, { headers: { Authorization: `Bearer ${token}` } });
       const videos = videoRes.data.videos || [];
       setVideosToView(videos);
       groupVideosByTag(videos);
@@ -136,7 +136,7 @@ function ShareKnowledge() {
                     <h5>Description:</h5>
                     <p className="upload-history-video-description">{video.description}</p>
                     <video className="upload-history-video" controls>
-                      <source src={`https://peersphere-3.onrender.com/video/${video._id}`} type="video/mp4" />
+                      <source src={video.videoPath} type="video/mp4" />
                       Your browser does not support the video tag.
                     </video>
                   </li>
@@ -156,23 +156,19 @@ function ShareKnowledge() {
               <ul className="upload-history-list">
                 {files.map((file) => ( 
                   <li className="upload-history-item" key={file._id}>
-                    <div>
+                    <p>
                       <span className="file-info-label">Title: </span>
                       <span className="upload-history-file-title">{file.title}</span>
-                    </div>
-                    <div>
+                    </p>
+                    <p>
                       <span className="file-info-label">Description: </span>
                       <span className="upload-history-file-description">{file.description}</span>
-                    </div>
+                    </p>
                     {renderFileContent(file)}
-                    <a
-                      href={file.filePath}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="upload-history-file-link"
-                    >
-                      Download File
-                    </a>
+                    <a href={`${backend_url}/file/${file._id}`} download>
+                    Download File
+                  </a>
+
                   </li>
                 ))}
               </ul>

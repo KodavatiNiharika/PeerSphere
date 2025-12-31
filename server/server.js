@@ -1,26 +1,24 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const storage = multer.memoryStorage();
 const streamifier = require("streamifier");
-require("dotenv").config();
-const videoUpload = multer({ storage: multer.memoryStorage() });
-const fileUpload = multer({ storage: multer.memoryStorage() });
+require('dotenv').config();
 
 const StudentModel = require("./models/student");
 const VideoModel = require("./models/video");
 const FileModel = require("./models/file");
 const MessageModel = require("./models/message")
+const cloudinary = require("./cloudinary"); //for streaming n transformations we have to install cloudinary SDK also
+const multer = require("multer");
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 const app = express();
 
-// Middleware
-const BASE_URL = process.env.BACKEND_URL || "http://localhost:3001";
 app.use(express.json());
 app.use(cors({ origin: "*" }));
 
@@ -143,72 +141,99 @@ app.get("/files", authenticateToken, async (req, res) => {
 });
 
 
-app.post("/videoUpload", authenticateToken, videoUpload.single("video"), async (req, res) => {
-  try {
-    const { title, description, tag } = req.body;
-
-    const uploadStream = cloudinary.uploader.upload_stream(
-      { resource_type: "video", folder: "peersphere/videos" },
-      async (error, result) => {
-        if (error) return res.status(500).json({ message: error.message });
-
-        const newVideo = new VideoModel({
-          title,
-          videoPath: result.secure_url,
-          description,
-          tag,
-          mail: req.user.email,
-        });
-
-        await newVideo.save();
-        res.status(201).json({ message: "Video uploaded successfully", video: newVideo });
+app.post("/videoUpload", authenticateToken, upload.single("video"), 
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No video file uploaded" });
       }
-    );
 
-    streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
+      const { title, description, tag } = req.body;
 
-  } catch (err) {
-    res.status(500).json({ message: "Server error: " + err.message });
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          resource_type: "video", //default is img
+          folder: "peersphere/videos",
+        },
+        async (error, result) => {
+          if (error) {
+            console.error(error);
+            return res.status(500).json({ message: "Cloudinary upload failed" });
+          }
+
+          const newVideo = new VideoModel({
+            title,
+            description,
+            tag,
+            videoPath: result.secure_url,
+            mail: req.user.email,
+          });
+
+          await newVideo.save();
+
+          res.status(201).json({
+            message: "Video uploaded successfully",
+            video: newVideo,
+          });
+        }
+      );
+
+      streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
   }
-});
+);
+
 
 
 
 
 // General File Upload Route
-app.post("/fileUpload", authenticateToken, fileUpload.single("file"), async (req, res) => {
-  try {
-    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
-
-    // Destructure the incoming request body to capture the tag and description
-    const { name, title, description, tag } = req.body;
-
-    const uploadStream = cloudinary.uploader.upload_stream(
-      { resource_type: "raw", folder: "peersphere/files" },
-      async (error, result) => {
-        if (error) return res.status(500).json({ message: error.message });
-
-        const newFile = new FileModel({
-          username: name,
-          name,
-          title,
-          description,
-          filePath: result.secure_url,
-          mail: req.user.email,
-          tag,
-        });
-
-        await newFile.save();
-        res.status(201).json({ message: "File uploaded successfully", file: newFile });
+app.post("/fileUpload", authenticateToken, upload.single("file"),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
       }
-    );
 
-    streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
+      const { title, description, tag, name } = req.body;
 
-  } catch (err) {
-    res.status(500).json({ message: "Server error: " + err.message });
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          resource_type: "auto",
+          folder: "peersphere/files",
+        },
+        async (error, result) => {
+          if (error) {
+            console.error(error);
+            return res.status(500).json({ message: "Cloudinary upload failed" });
+          }
+
+          const newFile = new FileModel({
+            username: name,
+            title,
+            description,
+            tag,
+            filePath: result.secure_url,
+            mail: req.user.email,
+          });
+
+          await newFile.save();
+
+          res.status(201).json({
+            message: "File uploaded successfully",
+            file: newFile,
+          });
+        }
+      );
+
+      streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
   }
-});
+);
 
 
 
@@ -363,20 +388,23 @@ app.get('/api/messages', async (req, res) => {
   }
 });
 
-// Serve a single video by ID
-app.get("/video/:id", authenticateToken, async (req, res) => {
-  const video = await VideoModel.findById(req.params.id);
-  if (!video) return res.status(404).send("Video not found");
-  // redirect to Cloudinary URL
-  res.redirect(video.videoPath);
+// File downlaod
+app.get("/file/:id", async (req, res) => { //acts as proxy, bcz some browsers wont allow downloading from  different domain 
+  try {
+    const file = await FileModel.findById(req.params.id);
+    if (!file) return res.status(404).send("File not found");
+
+    const axios = require("axios");
+    const response = await axios.get(file.filePath, { responseType: "stream" }); //for large size files - stream
+
+    res.setHeader("Content-Disposition", `attachment; filename="${file.title}"`);
+    response.data.pipe(res);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server error");
+  }
 });
 
-// Serve a single file by ID
-app.get("/file/:id", authenticateToken, async (req, res) => {
-  const file = await FileModel.findById(req.params.id);
-  if (!file) return res.status(404).send("File not found");
-  res.redirect(file.filePath);
-});
 
 
 const http = require("http");
@@ -430,7 +458,7 @@ socket.on("disconnect", () => {
 
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Server is running on ${PORT}`);
 });
 /* previously for http connections, we used app, but it wont let u know the reference, so u can't attach socket.IO
 So we created server, so both the websocket events and HTTP requests(via Express) share common server.

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./fileUploadHistory.css";
 import NewNavBar from "../../components/newNavBar/newNavBar";
-
+const backend_url = process.env.REACT_APP_BACKEND_URL;
 // Helper function to render file content based on its type
 const renderFilePreview = (file) => {
   if (!file || !file.filePath) {
@@ -40,7 +40,7 @@ const FileUploadHistory = () => {
     }
 
     try {
-      const response = await fetch(" https://peersphere-3.onrender.com/api/fileUploadHistory", {
+      const response = await fetch(`${backend_url}/api/fileUploadHistory`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
