@@ -9,7 +9,7 @@ function Home() {
   return (
 
     <div>
-      <h1>Welcome to the EdTech Platform</h1>
+      <h1>Welcome to the Peersphere Platform</h1>
       {token ? <NewNavBar/> : <Navbar/>}
       <ShareKnowledge/>
     </div>
