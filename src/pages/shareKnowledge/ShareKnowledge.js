@@ -4,30 +4,7 @@ import Sidebar from "../../components/sideBar/sideBar";
 import SearchBar from "../../components/searchBar/searchBar";
 import "./ShareKnowledge.css";
 import NewNavBar from '../../components/newNavBar/newNavBar';
-
-// Helper function to render file content based on its type
-const renderFileContent = (file) => {
-  const fileExtension = file.filePath.split('.').pop().toLowerCase();
-
-  switch (fileExtension) {
-    case 'jpg':
-    case 'jpeg':
-    case 'png':
-    case 'gif':
-      return <img src={file.filePath} alt={file.title} className="file-preview-image" />;
-    case 'pdf':
-      return <iframe src={file.filePath} className="file-viewer-pdf" title={file.title}></iframe>;
-    default:
-      // For other file types, you can show a generic placeholder or an icon.
-      // This will ensure something is visible even without a full preview.
-      return (
-        <div className="file-placeholder">
-          <p>Preview not available</p>
-          <p>File Type: {fileExtension.toUpperCase()}</p>
-        </div>
-      );
-  }
-};
+const backend_url = process.env.REACT_APP_BACKEND_URL;
 
 function ShareKnowledge() {
   const [videosToView, setVideosToView] = useState([]);
@@ -37,43 +14,65 @@ function ShareKnowledge() {
   const [filteredVideos, setFilteredVideos] = useState({});
   const [filteredFiles, setFilteredFiles] = useState({});
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const renderFilePreview = (file) => {
+  if (!file || !file.filePath) return <p>Invalid file data.</p>;
+
+  const fileExtension = file.filePath.split('.').pop().toLowerCase();
+
+  switch (fileExtension) {
+    case 'jpg':
+    case 'jpeg':
+    case 'png':
+    case 'gif':
+      return <img src={file.filePath} alt={`Preview of ${file.title}`} className="file-preview-image" />;
+    case 'pdf':
+      return <iframe src={file.filePath} title={`Preview of ${file.title}`} className="file-viewer-pdf"></iframe>;
+    default:
+      return <p className="file-preview-placeholder">No preview available for this file type.</p>;
+  }
+};
+
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      // Fetch Videos
-      axios.get("http://localhost:3001/videos", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then((res) => {
-        const videos = res.data.videos;
-        setVideosToView(videos);
-        groupVideosByTag(videos);
-      })
-      .catch((err) => {
-        console.error("Error fetching videos:", err);
-      });
-
-      // Fetch Files
-      axios.get("http://localhost:3001/files", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then((res) => {
-        const files = res.data.files;
-        setFilesToView(files);
-        groupFilesByTag(files);
-      })
-      .catch((err) => {
-        console.error("Error fetching files:", err);
-      });
-    } else {
-      setError("You need to be logged in to view videos and files.");
+  const fetchData = async () => {
+     if (!searchTerm) {
+      setFilteredVideos(groupedVideos);
+      setFilteredFiles(groupedFiles);
     }
-  }, []);
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("You need to be logged in to view videos and files.");
+      return;
+    }
+
+    try {
+      // Fetch files
+      const fileRes = await axios.get(`${backend_url}/files`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const files = fileRes.data.files || [];
+      groupFilesByTag(files);
+
+      // Fetch videos
+      const videoRes = await axios.get(`${backend_url}/videos`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const videos = videoRes.data.videos || [];
+      groupVideosByTag(videos);
+
+    } catch (err) {
+      console.error(err);
+      setError("Failed to fetch videos/files.");
+    }
+  };
+
+  fetchData();
+  const intervalId = setInterval(fetchData, 5000); // poll every 5 seconds
+  return () => clearInterval(intervalId); // cleanup on unmount
+}, [groupedVideos, groupedFiles, searchTerm]); // include searchTerm to re-apply search after fetch
+
 
   const groupVideosByTag = (videos) => {
     const grouped = videos.reduce((acc, video) => {
@@ -83,7 +82,6 @@ function ShareKnowledge() {
       return acc;
     }, {});
     setGroupedVideos(grouped);
-    setFilteredVideos(grouped);
   };
 
   const groupFilesByTag = (files) => {
@@ -94,16 +92,16 @@ function ShareKnowledge() {
       return acc;
     }, {});
     setGroupedFiles(grouped);
-    setFilteredFiles(grouped);
   };
 
   const handleSearch = (searchTerm) => {
+     setSearchTerm(searchTerm); 
     if (!searchTerm) {
       setFilteredVideos(groupedVideos);
       setFilteredFiles(groupedFiles);
       return;
     }
-    const filteredVideos = Object.entries(groupedVideos).reduce((acc, [tag, videos]) => {
+    const filteredVideos = Object.entries(groupedVideos).reduce((acc, [tag, videos]) => { //acc will store videos under their respective tags
       if (tag.toLowerCase().includes(searchTerm.toLowerCase())) {
         acc[tag] = videos;
       }
@@ -150,7 +148,7 @@ function ShareKnowledge() {
             </div>
           ))
         )}
-
+        
         {/* Files section */}
         {Object.keys(filteredFiles).length === 0 ? (
           <p className="no-files">No files found.</p>
@@ -163,27 +161,20 @@ function ShareKnowledge() {
                   <li className="upload-history-item" key={file._id}>
                     <p>
                       <span className="file-info-label">Title: </span>
-                      <p className="upload-history-file-title">{file.title}</p>
+                      <span className="upload-history-file-title">{file.title}</span>
                     </p>
                     <p>
                       <span className="file-info-label">Description: </span>
-                      <p className="upload-history-file-description">{file.description}</p>
+                      <span className="upload-history-file-description">{file.description}</span>
                     </p>
-                    {renderFileContent(file)}
-                    <a
-                      href={file.filePath}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="upload-history-file-link"
-                    >
-                      Download File
-                    </a>
+                    {renderFilePreview(file)}
                   </li>
                 ))}
               </ul>
             </div>
           ))
         )}
+
       </div>
     </div>
   );

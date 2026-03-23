@@ -1,24 +1,28 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-require("dotenv").config();
+const streamifier = require("streamifier");
+require('dotenv').config();
 
 const StudentModel = require("./models/student");
 const VideoModel = require("./models/video");
 const FileModel = require("./models/file");
 const MessageModel = require("./models/message")
+const cloudinary = require("./cloudinary"); //for streaming n transformations we have to install cloudinary SDK also
+const multer = require("multer");
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 const app = express();
 
-// Middleware
 app.use(express.json());
-app.use(cors({ origin: "http://localhost:3000" })); // Replace with your frontend URL
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use(cors({ origin: "*" }));
+
+
 
 // Register Route
 app.post("/register", async (req, res) => {
@@ -28,11 +32,13 @@ app.post("/register", async (req, res) => {
     if (existingUser) {
       return res.status(400).json({ message: `User with email ${email} already exists` });
     }
+    // HASH PASSWORD
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = new StudentModel({
       username,
       email,
-      password, // Store password as is (insecure)
+      password: hashedPassword, // ✅ store hashed password
     });
     await newUser.save();
 
@@ -51,28 +57,36 @@ app.post("/register", async (req, res) => {
 // Login Route
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
+
   try {
     const user = await StudentModel.findOne({ email });
-    if (user && user.password === password) {
-      const token = jwt.sign(
-        { id: user._id, email: user.email },
-        process.env.JWT_SECRET,
-        { expiresIn: "1h" }
-      );
 
-      res.json({
-        message: "Login successful",
-        token,
-        user: { username: user.username, email: user.email },
-      });
-    } else {
-      res.status(400).json({ message: "Invalid email or password" });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid password" });
+    }
+
+    const token = jwt.sign(
+      { id: user._id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    res.json({
+      message: "Login successful",
+      token,
+      user: { username: user.username, email: user.email },
+    });
+
   } catch (err) {
-    res.status(500).json({ message: "Server error: " + err.message });
+    res.status(500).json({ message: err.message });
   }
 });
-
 // JWT Authentication Middleware
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];
@@ -90,57 +104,12 @@ const authenticateToken = (req, res, next) => {
 };
 
 // Connect to MongoDB
+
 mongoose
   .connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
-// Multer Configuration for Video Uploads
-const videoStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = "./uploads/videos";
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
-  },
-});
-
-const videoUpload = multer({
-  storage: videoStorage,
-  limits: { fileSize: 1000 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = /mp4|mkv|avi/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
-    if (extname && mimetype) {
-      return cb(null, true);
-    }
-    cb(new Error("Invalid file type. Only video files are allowed."));
-  },
-});
-
-// Multer Configuration for General File Uploads
-const fileStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = "./uploads/files";
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
-  },
-});
-
-const fileUpload = multer({
-  storage: fileStorage,
-  limits: { fileSize: 5 * 1024 * 1024 },
-});
 
 // Routes
 // Video Upload Route
@@ -149,9 +118,6 @@ app.get("/videos", authenticateToken, async (req, res) => {
     // Fetch all videos (without pagination)
     const videos = await VideoModel.find().exec();
     
-    if (videos.length === 0) {
-      return res.status(404).json({ message: "No videos found" });
-    }
     // Add full video path to each video object
     const videoData = videos.map((video) => ({
       ...video._doc,
@@ -171,9 +137,6 @@ app.get("/files", authenticateToken, async (req, res) => {
     // Fetch all files (without pagination)
     const files = await FileModel.find().exec();
     
-    if (files.length === 0) {
-      return res.status(404).json({ message: "No files found" });
-    }
     // Add full video path to each video object
     const fileData = files.map((file) => ({
       ...file._doc,
@@ -189,62 +152,99 @@ app.get("/files", authenticateToken, async (req, res) => {
 });
 
 
-app.post("/videoUpload", authenticateToken, videoUpload.single("video"), async (req, res) => {
-  try {
-    const { title, description, tag } = req.body;
-    if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded" });
+app.post("/videoUpload", authenticateToken, upload.single("video"), 
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No video file uploaded" });
+      }
+
+      const { title, description, tag } = req.body;
+
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          resource_type: "video", //default is img
+          folder: "peersphere/videos",
+        },
+        async (error, result) => {
+          if (error) {
+            console.error(error);
+            return res.status(500).json({ message: "Cloudinary upload failed" });
+          }
+
+          const newVideo = new VideoModel({
+            title,
+            description,
+            tag,
+            videoPath: result.secure_url,
+            mail: req.user.email,
+          });
+
+          await newVideo.save();
+
+          res.status(201).json({
+            message: "Video uploaded successfully",
+            video: newVideo,
+          });
+        }
+      );
+
+      streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
     }
-    const videoPath = `http://localhost:3001/uploads/videos/${req.file.filename}`;
-    const newVideo = new VideoModel({
-      title,
-      videoPath,
-      description,
-      tag,
-      mail: req.user.email,
-    });
-    await newVideo.save();
-    res.status(201).json({ message: "Video uploaded successfully", video: newVideo });
-  } catch (err) {
-    res.status(500).json({ message: "Server error: " + err.message });
   }
-});
+);
+
+
+
+
 
 // General File Upload Route
-app.post("/fileUpload", authenticateToken, fileUpload.single("file"), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded" });
+app.post("/fileUpload", authenticateToken, upload.single("file"),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      const { title, description, tag, name } = req.body;
+
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          resource_type: "auto",
+          folder: "peersphere/files",
+        },
+        async (error, result) => {
+          if (error) {
+            console.error(error);
+            return res.status(500).json({ message: "Cloudinary upload failed" });
+          }
+
+          const newFile = new FileModel({
+            username: name,
+            title,
+            description,
+            tag,
+            filePath: result.secure_url,
+            mail: req.user.email,
+          });
+
+          await newFile.save();
+
+          res.status(201).json({
+            message: "File uploaded successfully",
+            file: newFile,
+          });
+        }
+      );
+
+      streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
     }
-
-    // Destructure the incoming request body to capture the tag and description
-    const { name, title, description, tag } = req.body;
-
-    // Define the file path after upload
-    const filePath = `http://localhost:3001/uploads/files/${req.file.filename}`;
-
-    // Save the file upload record with the correct fields
-    const newFile = new FileModel({
-      username: name,  // username passed from the frontend
-      name: name,  // file name passed from the frontend
-      title,
-      description,  // description passed from the frontend
-      filePath,  // the file path generated
-      mail: req.user.email,  // email of the authenticated user
-      tag,  // tag from the frontend
-    });
-
-    // Save the new file document to MongoDB
-    await newFile.save();
-
-    res.status(201).json({
-      message: "File uploaded successfully",
-      file: newFile,
-    });
-  } catch (err) {
-    res.status(500).json({ message: "Server error: " + err.message });
   }
-});
+);
 
 
 
@@ -314,7 +314,8 @@ app.get('/api/users/findByEmail', async (req, res) => {
     res.status(500).json({ error: 'Error fetching user' });
   }
 });
- 
+
+
 app.post('/api/messages', async (req, res) => {
   try {
     const { senderEmail, receiverEmail, text } = req.body;
@@ -398,12 +399,79 @@ app.get('/api/messages', async (req, res) => {
   }
 });
 
+// File downlaod
+app.get("/file/:id", async (req, res) => { //acts as proxy, bcz some browsers wont allow downloading from  different domain 
+  try {
+    const file = await FileModel.findById(req.params.id);
+    if (!file) return res.status(404).send("File not found");
 
+    const axios = require("axios");
+    const response = await axios.get(file.filePath, { responseType: "stream" }); //for large size files - stream
 
-
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+    res.setHeader("Content-Disposition", `attachment; filename="${file.title}"`);
+    response.data.pipe(res);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server error");
+  }
 });
 
+
+
+const http = require("http");
+const {Server} = require("socket.io")
+const server = http.createServer(app);
+const io = new Server(server, {
+  path: "/socket.io",
+  cors : {
+    origin : "*",
+    methods :["GET", "POST"],
+  },
+});
+
+io.on("connection", (socket) =>{ // fires when a client successfully connects
+console.log("User connected :", socket.id);
+socket.on("join", (email) => {
+  socket.join(email);
+  console.log(`${email} joined their room`);
+});
+socket.on("sendMessage", async({senderEmail, receiverEmail, text}) => {
+  try {
+    const sender = await StudentModel.findOne({email : senderEmail});
+    const receiver = await StudentModel.findOne({email : receiverEmail});
+    if(!sender || !receiver) return ;
+    const newMessage = new MessageModel({
+      senderId : sender._id,
+      receiverId : receiver._id,
+      text,
+    });
+    await newMessage.save();
+    io.to(receiverEmail).emit("receiveMessage", {
+      senderEmail,
+      receiverEmail,
+      text,
+      createdAt : newMessage.createdAt,
+    });
+    io.to(senderEmail).emit("receiveMessage", {
+      senderEmail,
+      receiverEmail,
+      text,
+      createdAt : newMessage.createdAt,
+    });
+  } catch(err) {
+    console.error("Error saving message : ", err.message);
+  }
+});
+socket.on("disconnect", () => {
+  console.log("User disconnected : ", socket.id);
+});
+});
+
+const PORT = process.env.PORT || 3001;
+server.listen(PORT, () => {
+  console.log(`Server is running on ${PORT}`);
+});
+/* previously for http connections, we used app, but it wont let u know the reference, so u can't attach socket.IO
+So we created server, so both the websocket events and HTTP requests(via Express) share common server.
+*/
 

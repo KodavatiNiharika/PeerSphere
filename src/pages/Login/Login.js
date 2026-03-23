@@ -4,7 +4,7 @@ import Navbar from "../../components/navBar/Navbar";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode"; // Correct named import
 import "./Login.css";
-
+const backend_url = process.env.REACT_APP_BACKEND_URL;
 const Login = () => {
   const [email, setEmail] = useState(""); // State for email
   const [password, setPassword] = useState(""); // State for password
@@ -28,7 +28,7 @@ const Login = () => {
     const loginData = { email, password }; // Prepare data for the request
 
     try {
-      const response = await axios.post("http://localhost:3001/login", loginData);
+      const response = await axios.post(`${backend_url}/login`, loginData);
 
       if (response.data.message === "Login successful") {
         // Extract the token and user data
@@ -60,7 +60,7 @@ const Login = () => {
       setLoading(false); // Reset loading state
     }
   };
-
+//JSX sees the {handleSubmit} and evaluates it as a JavaScript expression it finds that handleSubmit is a function.
   return (
     <>
       <Navbar />

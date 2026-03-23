@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./fileUploadHistory.css";
 import NewNavBar from "../../components/newNavBar/newNavBar";
-
+const backend_url = process.env.REACT_APP_BACKEND_URL;
 // Helper function to render file content based on its type
 const renderFilePreview = (file) => {
   if (!file || !file.filePath) {
@@ -40,7 +40,7 @@ const FileUploadHistory = () => {
     }
 
     try {
-      const response = await fetch(" https://peersphere-3.onrender.com/api/fileUploadHistory", {
+      const response = await fetch(`${backend_url}/api/fileUploadHistory`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -98,20 +98,9 @@ const FileUploadHistory = () => {
               <ul className="file-upload-history-list">
                 {files.map((upload) => (
                   <li className="file-upload-history-item" key={upload._id || upload.filename}>
-                    {/* Updated JSX to include "Title: " and "Description: " labels */}
-                    <h4 className="file-upload-history-item-title">Title: {upload.title}</h4>                    
-                    {/* Render the file preview */}
+                    <h4 className="file-upload-history-item-title">Title: {upload.title}</h4>      
                     {renderFilePreview(upload)}
                     <p className="file-upload-history-description">Description: {upload.description}</p>
-                    {/* Download Link */}
-                    <a
-                      href={upload.filePath}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="file-upload-history-link"
-                    >
-                      Download File
-                    </a>
                   </li>
                 ))}
               </ul>

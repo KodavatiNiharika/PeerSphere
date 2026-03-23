@@ -3,7 +3,7 @@ import axios from "axios";
 import NewNavBar from "../../components/newNavBar/newNavBar";
 import './videoUpload.css'
 import { useNavigate } from 'react-router-dom';
-
+const backend_url = process.env.REACT_APP_BACKEND_URL;
 
 function VideoUpload() {
   const navigate = useNavigate();
@@ -47,7 +47,7 @@ function VideoUpload() {
     const token = localStorage.getItem("token"); // Ensure the token exists
 
     try {
-      const response = await axios.post("http://localhost:3001/videoUpload", formData, {
+      const response = await axios.post(`${backend_url}/videoUpload`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data", // Ensure multipart format

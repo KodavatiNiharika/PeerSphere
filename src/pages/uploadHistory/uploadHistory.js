@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./uploadHistory.css";
 import NewNavBar from '../../components/newNavBar/newNavBar'
-
+const backend_url = process.env.REACT_APP_BACKEND_URL;
 const UploadHistory = () => {
   const [uploadHistory, setUploadHistory] = useState([]);
   const [groupedVideos, setGroupedVideos] = useState({});
@@ -18,7 +18,7 @@ const UploadHistory = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:3001/api/uploadHistory", {
+      const response = await fetch(`${backend_url}/api/uploadHistory`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

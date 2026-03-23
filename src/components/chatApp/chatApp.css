@@ -2,8 +2,8 @@
 .current-chat {
   position: absolute;
   top: 10%;             /* leave 10% from top */
-  left: 30%;            /* leave 30% from left */
-  right: 5%;            /* optional right margin */
+  left: 20%;            /* leave 30% from left */
+  right: 1%;            /* optional right margin */
   bottom: 10%;          /* leave 10% from bottom */
   display: flex;
   flex-direction: column;
@@ -15,7 +15,7 @@
   font-size: 12px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.1);
   width: auto;          /* prevent expansion to full width */
-  max-width: 65%;       /* keep width relative to left 30% */
+  max-width: 100%;       /* keep width relative to left 30% */
 }
 
 .receiver-email {
@@ -27,58 +27,79 @@
 }
 
 
-/* CHAT WINDOW (top 90%) */
 .chat-window {
-  flex: 9;                      /* top 90% */
-  padding: 8px;
+  flex: 9;
+  padding: 8px 12px 8px 8px; /* add more right padding */
   background-color: #fff;
   border-radius: 8px;
   border: 1px solid #ddd;
   margin-bottom: 5px;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 5px;
+  overflow-x: hidden; /* prevent horizontal scroll if borders overflow */
 }
+
 
 /* MESSAGES */
 .chat-message {
-  max-width: 70%;
   padding: 6px 10px;
   border-radius: 10px;
   word-wrap: break-word;
   font-size: 12px;
+  white-space: pre-wrap; /* preserves line breaks */
+   overflow-x: hidden;  
 }
 
 .chat-message.me {
   background-color: #d1e7dd;
   align-self: flex-end;
-  
-  width: 60%;           /* 60% of the chat window width */
-  min-height: 20px;     /* at least 20px height */
-  max-height: 20%;      /* maximum 20% of chat window height */
+  width: 30%;
+  margin-right: 9%;
+  min-height: 60px;
+  max-height: 200px;
   padding: 6px 10px;
-  border-radius: 10px;
+  border-radius: 20px;
   word-wrap: break-word;
   overflow-wrap: break-word;
+  white-space: pre-wrap;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
+ 
+  scrollbar-width: none;         
+  -ms-overflow-style: none;     
+
+  border: 2px solid #a3c4b6;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
 }
+ 
+.chat-message.me::-webkit-scrollbar {
+  display: none;
+}
+
+
 
 .chat-message.other {
   background-color: #f8d7da;
   align-self: flex-start;
-  
-  width: 60%;           /* 60% of the chat window width */
-  min-height: 20px;     /* at least 20px height */
-  max-height: 20%;      /* maximum 20% of chat window height */
+  margin-left: 13%;
+  max-height: 200px;
+  width: 30%;
+  min-height: 60px;
   padding: 6px 10px;
-  border-radius: 10px;
+  border-radius: 20px;
   word-wrap: break-word;
   overflow-wrap: break-word;
   display: flex;
   flex-direction: column;
+
+  border: 2px solid #e6bfc2; 
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box; 
 }
+
 
 .user-name {
   font-weight: bold;
