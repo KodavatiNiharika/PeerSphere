@@ -32,7 +32,7 @@ const Login = () => {
 
       if (response.data.message === "Login successful") {
         // Extract the token and user data
-        const { token, user } = response.data;
+        const { token } = response.data;
 
         if (!token) {
           setError("Token not received. Please contact support.");

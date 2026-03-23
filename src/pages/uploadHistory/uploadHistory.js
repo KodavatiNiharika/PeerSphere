@@ -3,12 +3,14 @@ import "./uploadHistory.css";
 import NewNavBar from '../../components/newNavBar/newNavBar'
 const backend_url = process.env.REACT_APP_BACKEND_URL;
 const UploadHistory = () => {
-  const [uploadHistory, setUploadHistory] = useState([]);
   const [groupedVideos, setGroupedVideos] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const fetchUploadHistory = async () => {
+  
+
+  useEffect(() => {
+    const fetchUploadHistory = async () => {
     const token = localStorage.getItem("token");
 
     if (!token) {
@@ -50,8 +52,6 @@ const UploadHistory = () => {
     }, {});
     setGroupedVideos(grouped);
   };
-
-  useEffect(() => {
     fetchUploadHistory();
   }, []);
 
