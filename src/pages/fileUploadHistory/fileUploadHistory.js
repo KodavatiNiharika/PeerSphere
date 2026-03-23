@@ -25,12 +25,22 @@ const renderFilePreview = (file) => {
 };
 
 const FileUploadHistory = () => {
-  const [fileUploadHistory, setFileUploadHistory] = useState([]);
   const [groupedFiles, setGroupedFiles] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const fetchFileUploadHistory = async () => {
+  const groupFilesByTag = (files) => {
+    const grouped = files.reduce((acc, file) => {
+      const tag = file.tag || "General";
+      if (!acc[tag]) acc[tag] = [];
+      acc[tag].push(file);
+      return acc;
+    }, {});
+    setGroupedFiles(grouped);
+  };
+
+  useEffect(() => {
+    const fetchFileUploadHistory = async () => {
     const token = localStorage.getItem("token");
 
     if (!token) {
@@ -61,18 +71,6 @@ const FileUploadHistory = () => {
       setLoading(false);
     }
   };
-
-  const groupFilesByTag = (files) => {
-    const grouped = files.reduce((acc, file) => {
-      const tag = file.tag || "General";
-      if (!acc[tag]) acc[tag] = [];
-      acc[tag].push(file);
-      return acc;
-    }, {});
-    setGroupedFiles(grouped);
-  };
-
-  useEffect(() => {
     fetchFileUploadHistory();
   }, []);
 

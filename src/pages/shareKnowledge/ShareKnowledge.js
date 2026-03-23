@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import Sidebar from "../../components/sideBar/sideBar";
 import SearchBar from "../../components/searchBar/searchBar";
 import "./ShareKnowledge.css";
 import NewNavBar from '../../components/newNavBar/newNavBar';
 const backend_url = process.env.REACT_APP_BACKEND_URL;
 
 function ShareKnowledge() {
-  const [videosToView, setVideosToView] = useState([]);
-  const [filesToView, setFilesToView] = useState([]);
   const [groupedVideos, setGroupedVideos] = useState({});
   const [groupedFiles, setGroupedFiles] = useState({});
   const [filteredVideos, setFilteredVideos] = useState({});
