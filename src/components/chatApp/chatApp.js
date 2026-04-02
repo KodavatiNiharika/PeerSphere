@@ -56,6 +56,9 @@ function ChatApp() {
   // Start chat
   const startChat = async () => {
   if (!receiverEmail.trim()) return;
+  <div className="receiver-email">
+    {selectedContact?.username || receiverEmail}
+  </div>
 
   if (receiverEmail === senderEmail) {
     alert("You cannot start a chat with yourself.");
