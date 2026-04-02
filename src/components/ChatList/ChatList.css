@@ -1,0 +1,25 @@
+.chat-app-wrapper {
+  display: flex;
+  height: 100vh;
+}
+
+.chat-list {
+  width: 300px;
+  border-right: 1px solid #ccc;
+  background-color: #f0f0f0;
+  overflow-y: auto;
+}
+
+.chat-list-item {
+  padding: 15px;
+  cursor: pointer;
+  border-bottom: 1px solid #ddd;
+}
+
+.chat-list-item:hover {
+  background-color: #e0e0e0;
+}
+
+.contact-name {
+  font-weight: bold;
+}

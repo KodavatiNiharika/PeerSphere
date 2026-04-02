@@ -207,7 +207,6 @@ app.post("/fileUpload", authenticateToken, upload.single("file"),
       if (!req.file) {
         return res.status(400).json({ message: "No file uploaded" });
       }
-
       const { title, description, tag, name } = req.body;
 
       const uploadStream = cloudinary.uploader.upload_stream(
@@ -220,7 +219,7 @@ app.post("/fileUpload", authenticateToken, upload.single("file"),
             console.error(error);
             return res.status(500).json({ message: "Cloudinary upload failed" });
           }
-
+          // console.log("hhh");
           const newFile = new FileModel({
             username: name,
             title,
@@ -395,6 +394,33 @@ app.get('/api/messages', async (req, res) => {
     res.json({ messages });
   } catch (err) {
     console.error("Error fetching messages:", err.message);
+    res.status(500).json({ message: "Server error: " + err.message });
+  }
+});
+
+// GET /api/chatContacts
+app.get("/api/chatContacts", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Find all messages where this user is sender or receiver
+    const messages = await MessageModel.find({
+      $or: [{ senderId: userId }, { receiverId: userId }]
+    }).populate("senderId", "username email")
+      .populate("receiverId", "username email");
+
+    // Extract unique contacts
+    const contactsMap = {};
+    messages.forEach((msg) => {
+      const otherUser =
+        msg.senderId._id.toString() === userId ? msg.receiverId : msg.senderId;
+      contactsMap[otherUser.email] = otherUser; // ensure uniqueness
+    });
+
+    const contacts = Object.values(contactsMap);
+    res.json({ contacts });
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Server error: " + err.message });
   }
 });

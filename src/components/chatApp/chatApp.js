@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import {io} from "socket.io-client";
 import NewNavBar from "../newNavBar/newNavBar";
 import PastChat from "../pastChat/pastChat";
+import ChatList from "../ChatList/ChatList";
 import axios from "axios";
 import "./chatApp.css";
 
@@ -11,6 +12,7 @@ function ChatApp() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([]);
   const chatEndRef = useRef(null);
+  const [selectedContact, setSelectedContact] = useState(null);
 
   const token = localStorage.getItem("token");
   const senderEmail = localStorage.getItem("email");
@@ -53,16 +55,40 @@ function ChatApp() {
 
   // Start chat
   const startChat = async () => {
-    if (!receiverEmail.trim()) return;
+  if (!receiverEmail.trim()) return;
 
-    if (receiverEmail === senderEmail) {
-      alert("You cannot start a chat with yourself.");
+  if (receiverEmail === senderEmail) {
+    alert("You cannot start a chat with yourself.");
+    return;
+  }
+
+  try {
+    // Check if the user exists
+    const res = await axios.get(
+      "https://peersphere-3.onrender.com/api/users/findByEmail",
+      {
+        params: { email: receiverEmail },
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    if (!res.data || !res.data.email) {
+      alert("User does not exist.");
+      setReceiverEmail(""); // clear input
       return;
     }
 
     setChatStarted(true);
-    await fetchMessages();
-  };
+    await fetchMessages(); // fetch messages with this user
+  } catch (err) {
+    if (err.response && err.response.status === 404) {
+      alert("User does not exist.");
+      setReceiverEmail(""); // clear input
+    } else {
+      console.error("Error checking user:", err);
+    }
+  }
+};
 
   // Send a message
   const sendMessage = async () => {
@@ -110,7 +136,18 @@ function ChatApp() {
 
   return (
     <div className="chat-app-wrapper">
+      <ChatList
+      token={token}
+      currentUserEmail={senderEmail}
+      onSelectContact={(contact) => {
+        setSelectedContact(contact);
+        setReceiverEmail(contact.email);
+        setChatStarted(true);
+        fetchMessages(); // fetch messages with this contact
+      }}
+    />
       <PastChat />
+      
       <div className="main-content">
         <NewNavBar />
         <button className="new-chat">New Chat</button>
