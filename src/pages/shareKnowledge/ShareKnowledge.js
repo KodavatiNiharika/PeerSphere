@@ -60,6 +60,11 @@ function ShareKnowledge() {
       groupVideosByTag(videos);
 
     } catch (err) {
+      if (err.response?.status === 401) {
+        // Token expired or invalid
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+      }
       console.error(err);
       setError("Failed to fetch videos/files.");
     }

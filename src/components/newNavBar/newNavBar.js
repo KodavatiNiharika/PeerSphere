@@ -10,11 +10,12 @@ function NewNavBar() {
         const confirmLogout = window.confirm("Are you sure you want to logout?");
         if (confirmLogout) {
           // Clear authentication-related data
-          localStorage.removeItem("token"); // Example: Removing token from localStorage
-      localStorage.removeItem("user"); // Optional: Remove user details if stored
+            localStorage.removeItem("token"); 
+            localStorage.removeItem("user");
 
-      // Redirect to the login page or refresh the state
-      navigate("/login"); // Redirects to the login page
+            // Redirect to the login page or refresh the state
+            navigate("/login"); // Redirects to the login page
+            window.location.reload();
         }
       };
     const toggleSidebar = () => {

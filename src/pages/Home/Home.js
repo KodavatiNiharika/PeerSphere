@@ -1,22 +1,16 @@
 import React from "react";
-import Navbar from '../../components/navBar/Navbar'
-import './Home.css';
-import NewNavBar from "../../components/newNavBar/newNavBar";
+import "./Home.css";
 import ShareKnowledge from "../shareKnowledge/ShareKnowledge";
-function Home() {
-  const token = localStorage.getItem('token');
-  console.log(token)
-  return (
+import Login from "../Login/Login";
 
+function Home() {
+  const token = localStorage.getItem("token");
+  // console.log(token);
+  return (
     <div>
-      <h1>Welcome to the Peersphere Platform</h1>
-      {token ? <NewNavBar/> : <Navbar/>}
-      <ShareKnowledge/>
+      {token ? <ShareKnowledge /> : <Login />}
     </div>
   );
 }
 
 export default Home;
-
-
-//hooks

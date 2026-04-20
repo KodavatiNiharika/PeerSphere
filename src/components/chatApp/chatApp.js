@@ -7,7 +7,7 @@ import axios from "axios";
 import "./chatApp.css";
 
 function ChatApp() {
-  const [receiverEmail, setReceiverEmail] = useState("");
+  const [receiverUsername, setReceiverUsername] = useState("");
   const [chatStarted, setChatStarted] = useState(false);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([]);
@@ -15,19 +15,20 @@ function ChatApp() {
   const [selectedContact, setSelectedContact] = useState(null);
 
   const token = localStorage.getItem("token");
-  const senderEmail = localStorage.getItem("email");
   const senderUsername = localStorage.getItem("username") || "You";
   const socketRef = useRef(null);
   useEffect(() => {
     socketRef.current = io("https://peersphere-3.onrender.com", {
       path: "/socket.io",
-      transports : ["websocket"],
+      transports: ["websocket"],
+      auth: {
+        token: localStorage.getItem("token"),
+      },
     });
-    socketRef.current.emit("join", senderEmail);
+    socketRef.current.emit("join");
     socketRef.current.on("receiveMessage", (msg) =>{
-      if(msg.senderEmail === senderEmail) return;
       setMessages((prev) => [...prev, {
-        senderId : {email:msg.senderEmail, username : msg.senderEmail},
+        senderId : {username : msg.senderUsername},
         text:msg.text,
         createdAt:msg.createdAt,
       }]);
@@ -35,32 +36,34 @@ function ChatApp() {
     return() => {
       socketRef.current.disconnect();
     };
-  }, [senderEmail]);
+  }, [senderUsername]);
 
 
   // Fetch messages between logged-in user and receiver
   const fetchMessages = async () => {
-    if (!receiverEmail) return;
+    if (!receiverUsername) return;
 
     try {
       const response = await axios.get("https://peersphere-3.onrender.com/api/messages", {
-        params: { senderEmail, receiverEmail },
+        params: { senderUsername, receiverUsername},
         headers: { Authorization: `Bearer ${token}` },
       });
+      console.log(response);
       setMessages(response.data.messages);
     } catch (err) {
+      // console.log(err);
       console.error("Error fetching messages:", err);
     }
   };
 
   // Start chat
   const startChat = async () => {
-  if (!receiverEmail.trim()) return;
-  <div className="receiver-email">
-    {selectedContact?.username || receiverEmail}
-  </div>
+  if (!receiverUsername.trim()) return;
+  // <div className="receiver-email">
+  //   {selectedContact?.username || receiverUsername}
+  // </div>
 
-  if (receiverEmail === senderEmail) {
+  if (receiverUsername === senderUsername) {
     alert("You cannot start a chat with yourself.");
     return;
   }
@@ -68,54 +71,56 @@ function ChatApp() {
   try {
     // Check if the user exists
     const res = await axios.get(
-      "https://peersphere-3.onrender.com/api/users/findByEmail",
+      "https://peersphere-3.onrender.com/api/users/findByUserName", // change this while pushing to github
       {
-        params: { email: receiverEmail },
+        params: { username: receiverUsername },
         headers: { Authorization: `Bearer ${token}` },
       }
     );
 
     if (!res.data || !res.data.email) {
       alert("User does not exist.");
-      setReceiverEmail(""); // clear input
+      setReceiverUsername(""); // clear input
       return;
     }
+    console.log(res);
 
     setChatStarted(true);
     await fetchMessages(); // fetch messages with this user
   } catch (err) {
     if (err.response && err.response.status === 404) {
       alert("User does not exist.");
-      setReceiverEmail(""); // clear input
+      setReceiverUsername(""); // clear input
     } else {
       console.error("Error checking user:", err);
     }
   }
+
 };
 
   // Send a message
   const sendMessage = async () => {
     if (!input.trim()) return;
 
-    if (receiverEmail === senderEmail) {
+    if (receiverUsername === senderUsername) {
       alert("You cannot send messages to yourself.");
       return;
     }
 
-    const newMsg = { senderEmail, receiverEmail, text: input };
+    const newMsg = {receiverUsername, text: input };
 
     try {
       // Add locally for instant UI update
       setMessages((prev) => [
         ...prev, //if u use ...messages, then u may miss the previous updated data
         {
-          senderId: { email: senderEmail, username: senderUsername },
+          senderId: {username: senderUsername },
           text: input,
           createdAt: new Date().toISOString(), // add current timestamp
         },
       ]);
       setInput("");
-
+      
       socketRef.current.emit("sendMessage", newMsg);
 
       // Optionally, refetch messages to sync server timestamps
@@ -141,42 +146,39 @@ function ChatApp() {
     <div className="chat-app-wrapper">
       <ChatList
       token={token}
-      currentUserEmail={senderEmail}
+      currentUserName={senderUsername}
       onSelectContact={(contact) => {
         setSelectedContact(contact);
-        setReceiverEmail(contact.email);
+        setReceiverUsername(contact.receiverUserName);
         setChatStarted(true);
         fetchMessages(); // fetch messages with this contact
       }}
     />
-      <PastChat />
       
       <div className="main-content">
         <NewNavBar />
-        <button className="new-chat">New Chat</button>
 
         <div className="current-chat">
           {!chatStarted ? (
             <input
-              type="email"
-              value={receiverEmail}
-              placeholder="Enter receiver email"
-              className="email-input-line"
-              onChange={(e) => setReceiverEmail(e.target.value)}
+              type="text"
+              value={receiverUsername}
+              placeholder="Enter receiver username"
+              className="username-input-line"
+              onChange={(e) => setReceiverUsername(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && startChat()}
             />
           ) : (
             <>
-              <div className="receiver-email">{receiverEmail}</div>
               <div className="chat-window">
                 {messages.map((msg, index) => {
                   const isMe =
-                    msg.senderId?.email === senderEmail;
+                    msg.senderId?.username === senderUsername;
                     console.log("Added",msg.senderId);
                   return (
                     <div key={index} className={`chat-message ${isMe ? "me" : "other"}`}>
                       <span className="user-name">
-                        {isMe ? "Me" : msg.senderId?.username || msg.senderId?.email}:
+                        {isMe ? "You" : msg.senderId?.username || msg.senderId?.email}:
                       </span>{" "}
                       {msg.text}
                       <div className="message-timestamp">
@@ -188,12 +190,18 @@ function ChatApp() {
                 <div ref={chatEndRef}></div>
               </div>
               <div className="chat-input">
-                <input
-                  type="text"
+                <textarea
                   value={input}
                   placeholder="Type a message..."
                   onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      sendMessage();
+                    }
+                  }}
+                  rows={2}                // default visible lines
+                  className="chat-input-textarea"
                 />
                 <button onClick={sendMessage}>Send</button>
               </div>

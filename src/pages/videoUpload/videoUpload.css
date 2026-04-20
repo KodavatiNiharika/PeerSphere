@@ -1,32 +1,7 @@
-/* Overall page layout */
-.video-upload {
-  margin: 0 auto;
-  max-width: 800px;
-  padding: 40px; /* Increased padding for more internal space */
-  background-color: #ffffff; /* A clean, white background */
-  border-radius: 12px; /* More rounded corners */
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Deeper shadow for a "floating" effect */
-  margin-top: 50px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* A modern, clean font */
-}
 
-/* Heading */
-.video-upload h1 {
-  text-align: center;
-  font-size: 2.5rem; /* Larger heading */
-  color: #1d3557; /* A deep blue for a professional look */
-  margin-bottom: 30px;
-  font-weight: 600;
-  border-bottom: 2px solid #e0e0e0; /* A subtle separator line */
-  padding-bottom: 15px;
-}
 
-/* Form styling */
-.video-upload-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px; /* Increased space between form elements */
-}
+
+
 
 /* Form labels */
 .video-upload-form label {

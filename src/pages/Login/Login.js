@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../../components/navBar/Navbar";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode"; // Correct named import
 import "./Login.css";
 const backend_url = process.env.REACT_APP_BACKEND_URL;
 const Login = () => {
-  const [email, setEmail] = useState(""); // State for email
+  const [username, setUsername] = useState(""); // State for email
   const [password, setPassword] = useState(""); // State for password
   const [error, setError] = useState(""); // State for error message
   const [loading, setLoading] = useState(false); // State for loading
@@ -19,13 +19,13 @@ const Login = () => {
     setLoading(true); // Set loading state
 
     // Basic input validation
-    if (!email || !password) {
-      setError("Both email and password are required.");
+    if (!username || !password) {
+      setError("Both username and password are required.");
       setLoading(false);
       return;
     }
 
-    const loginData = { email, password }; // Prepare data for the request
+    const loginData = { username, password }; // Prepare data for the request
 
     try {
       const response = await axios.post(`${backend_url}/login`, loginData);
@@ -45,7 +45,7 @@ const Login = () => {
 
         // Store token, decoded user data, and email in localStorage
         localStorage.setItem("token", token);
-        localStorage.setItem("email", email); // Store email along with token
+        localStorage.setItem("username", username); // Store username along with token
         localStorage.setItem("user", JSON.stringify(decodedToken)); // Store decoded user details
 
         // Redirect to the ShareKnowledge page
@@ -63,20 +63,19 @@ const Login = () => {
 //JSX sees the {handleSubmit} and evaluates it as a JavaScript expression it finds that handleSubmit is a function.
   return (
     <>
-      <Navbar />
       <div className="login-container">
         <h1>Login</h1>
         <div className="login-box">
           <h2>Student Login</h2>
           <form onSubmit={handleSubmit}>
             <input
-              type="email"
-              name="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              name="username"
+              placeholder="Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               required
-              className={error && !email ? "input-error" : ""}
+              className={error && !username ? "input-error" : ""}
             />
             <input
               type="password"
@@ -92,6 +91,13 @@ const Login = () => {
               {loading ? <span className="spinner"></span> : "Login"}
             </button>
           </form>
+          
+          <div style={{ marginTop: "20px" }}>
+            <p>
+              New user ? {" "}
+              <Link to="/register">Register</Link>
+            </p>
+          </div>
         </div>
       </div>
     </>

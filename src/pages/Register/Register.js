@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import Navbar from "../../components/navBar/Navbar";
-const backend_url = process.env.REACT_APP_BACKEND_URL;
+const backend_url = process.env.REACT_APP_BACKEND_URL; 
 const Register = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -42,13 +42,12 @@ const Register = () => {
         email,
         password,
       });
-
       if (response.status === 201) {
         const { token } = response.data;
 
         // Store the token and email in localStorage
         localStorage.setItem("token", token);
-        localStorage.setItem("email", email);
+        localStorage.setItem("username", username);
 
         setSuccess("Registration successful! Redirecting to home page...");
         setTimeout(() => {
@@ -66,10 +65,10 @@ const Register = () => {
 
   return (
     <>
-      <Navbar/>
-    <div className="container">
+    <div className="register-container">
       <h1>Register</h1>
-
+      <div className="register-box">
+        <h2>Student Register</h2>
       <form onSubmit={handleRegister}>
         <input
           type="text"
@@ -108,8 +107,13 @@ const Register = () => {
         </button>
       </form>
 
-      <p>Already have an account?</p>
-      <Link to="/login">Login</Link>
+      <div style={{ marginTop: "20px" }}>
+        <p>
+          Already have an account?{" "}
+          <Link to="/login">Login</Link>
+        </p>
+      </div>
+      </div>
     </div>
     </>
   );

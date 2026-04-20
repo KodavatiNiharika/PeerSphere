@@ -15,10 +15,6 @@ function Navbar() {
       <Link to="/">Home</Link>
       <Link to="/login">Login</Link>
       <Link to="/register">Register</Link>
-      <span onClick={toggleSidebar} className="profile-link">
-        Your Profile
-      </span>
-      {showSidebar && <Sidebar />} {/* Sidebar will render here */}
     </nav>
   );
 }

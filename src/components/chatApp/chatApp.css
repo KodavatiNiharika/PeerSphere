@@ -1,10 +1,11 @@
 /* CURRENT CHAT CONTAINER */
+/* CURRENT CHAT CONTAINER */
 .current-chat {
   position: absolute;
-  top: 10%;             /* leave 10% from top */
-  left: 20%;            /* leave 30% from left */
-  right: 1%;            /* optional right margin */
-  bottom: 10%;          /* leave 10% from bottom */
+  top: 8%;             /* reduced from 10% to 5% */
+  left: 20%;           /* keep left margin */
+  right: 1%;           /* optional right margin */
+  bottom: 30%;         /* space below chat container */
   display: flex;
   flex-direction: column;
   padding: 5px;
@@ -14,8 +15,8 @@
   overflow: hidden;
   font-size: 12px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-  width: auto;          /* prevent expansion to full width */
-  max-width: 100%;       /* keep width relative to left 30% */
+  width: auto;          
+  max-width: 100%;      
 }
 
 .receiver-email {
@@ -115,7 +116,7 @@
   padding: 2px 0;
 } 
 
-.chat-input input {
+.chat-input textarea {
   width: 60%;
   display: flex;
   gap: 4px;

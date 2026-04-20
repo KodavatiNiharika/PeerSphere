@@ -24,11 +24,7 @@ body {
   text-align: center;
 }
 
-h1 {
-  font-size: 2rem;
-  color: #333;
-  margin-bottom: 30px;
-}
+
 
 .login-options {
   display: flex;

@@ -15,7 +15,12 @@ const MessageModel = require("./models/message")
 const cloudinary = require("./cloudinary"); //for streaming n transformations we have to install cloudinary SDK also
 const multer = require("multer");
 const storage = multer.memoryStorage();
-const upload = multer({ storage });
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 100 * 1024 * 1024 // 100MB max
+  }
+});
 
 const app = express();
 
@@ -28,6 +33,10 @@ app.use(cors({ origin: "*" }));
 app.post("/register", async (req, res) => {
   const { username, email, password } = req.body;
   try {
+    const existingUsername = await StudentModel.findOne({username});
+    if(existingUsername) {
+      return res.status(400).json({message : `User with username ${username} already exists`});
+    }
     const existingUser = await StudentModel.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: `User with email ${email} already exists` });
@@ -38,7 +47,7 @@ app.post("/register", async (req, res) => {
     const newUser = new StudentModel({
       username,
       email,
-      password: hashedPassword, // ✅ store hashed password
+      password: hashedPassword, //  store hashed password
     });
     await newUser.save();
 
@@ -56,10 +65,10 @@ app.post("/register", async (req, res) => {
 
 // Login Route
 app.post("/login", async (req, res) => {
-  const { email, password } = req.body;
+  const { username, password } = req.body;
 
   try {
-    const user = await StudentModel.findOne({ email });
+    const user = await StudentModel.findOne({ username });
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -72,7 +81,7 @@ app.post("/login", async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user._id, email: user.email },
+      { id: user._id, username: user.username },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
@@ -226,7 +235,7 @@ app.post("/fileUpload", authenticateToken, upload.single("file"),
             description,
             tag,
             filePath: result.secure_url,
-            mail: req.user.email,
+            username: req.user.username,
           });
 
           await newFile.save();
@@ -254,7 +263,7 @@ app.get("/api/uploadHistory", authenticateToken, async (req, res) => {
     const email = req.user.email;
     const { page = 1, limit = 10 } = req.query;
     const skip = (page - 1) * limit;
-    const uploadHistory = await VideoModel.find({ mail: email })
+    const uploadHistory = await VideoModel.find({ mail : email })
       .skip(skip)
       .limit(parseInt(limit))
       .exec();
@@ -297,16 +306,16 @@ app.get("/api/fileUploadHistory", authenticateToken, async (req, res) => {
 
 
 
-app.get('/api/users/findByEmail', async (req, res) => {
-  const { email } = req.query;
+app.get('/api/users/findByUserName', async (req, res) => {
+  const { username } = req.query;
   try {
-    const user = await StudentModel.findOne({ email });
+    const user = await StudentModel.findOne({ username });
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
     res.json({
       _id: user._id,
-      name: user.name,
+      name: user.username,
       email: user.email
     });
   } catch (err) {
@@ -315,69 +324,29 @@ app.get('/api/users/findByEmail', async (req, res) => {
 });
 
 
-app.post('/api/messages', async (req, res) => {
-  try {
-    const { senderEmail, receiverEmail, text } = req.body;
-
-    if (!senderEmail || !receiverEmail || !text) {
-      return res.status(400).json({ message: "senderEmail, receiverEmail and text are required" });
-    }
-
-    // Find sender
-    const sender = await StudentModel.findOne({ email: senderEmail });
-    if (!sender) {
-      return res.status(404).json({ message: "Sender not found. Please login again." });
-    }
-
-    // Find receiver
-    const receiver = await StudentModel.findOne({ email: receiverEmail });
-    if (!receiver) {
-      return res.status(404).json({ message: "Receiver email is not registered on this website." });
-    }
-
-    // Prevent sending message to self
-    if (sender._id.toString() === receiver._id.toString()) {
-      return res.status(400).json({ message: "You cannot send a message to yourself." });
-    }
-
-    // Save message
-    const newMessage = new MessageModel({
-      senderId: sender._id,
-      receiverId: receiver._id,
-      text,
-    });
-
-    await newMessage.save();
-
-    res.status(201).json({ message: "Message sent successfully", newMessage });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error: " + err.message });
-  }
-});
 
 
 
 
-// GET /api/messages?senderEmail=...&receiverEmail=...
+// GET /api/messages?senderUsername=...&receiverUsername=...
 app.get('/api/messages', async (req, res) => {
   try {
-    const { senderEmail, receiverEmail } = req.query;
+    const { senderUsername, receiverUsername } = req.query;
 
-    if (!senderEmail || !receiverEmail) {
-      return res.status(400).json({ message: "senderEmail and receiverEmail are required" });
+    if (!senderUsername || !receiverUsername) {
+      return res.status(400).json({ message: "senderUsername and receiverUsername are required" });
     }
 
     // Validate sender
-    const sender = await StudentModel.findOne({ email: senderEmail });
+    const sender = await StudentModel.findOne({ username: senderUsername });
     if (!sender) {
       return res.status(404).json({ message: "Sender not found" });
     }
 
     // Validate receiver
-    const receiver = await StudentModel.findOne({ email: receiverEmail });
+    const receiver = await StudentModel.findOne({ username: receiverUsername });
     if (!receiver) {
-      return res.status(404).json({ message: "Receiver email is not registered on this website" });
+      return res.status(404).json({ message: "Receiver is not registered on this website" });
     }
 
     // Get messages safely
@@ -387,8 +356,8 @@ app.get('/api/messages', async (req, res) => {
         { senderId: receiver._id, receiverId: sender._id }
       ]
     })
-      .populate("senderId", "username email")
-      .populate("receiverId", "username email")
+      .populate("senderId", "username")
+      .populate("receiverId", "username")
       .sort({ createdAt: 1 });
 
     res.json({ messages });
@@ -455,16 +424,28 @@ const io = new Server(server, {
   },
 });
 
+io.use((socket, next) => {
+  const token = socket.handshake.auth.token;
+
+  if (!token) return next(new Error("No token"));
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) return next(new Error("Invalid token"));
+    socket.user = decoded;
+    next();
+  });
+});
 io.on("connection", (socket) =>{ // fires when a client successfully connects
 console.log("User connected :", socket.id);
-socket.on("join", (email) => {
-  socket.join(email);
-  console.log(`${email} joined their room`);
+socket.on("join", (username) => {
+  socket.join(username);
+  console.log(`${username} joined their room`);
 });
-socket.on("sendMessage", async({senderEmail, receiverEmail, text}) => {
+socket.on("sendMessage", async({receiverUsername, text}) => {
   try {
-    const sender = await StudentModel.findOne({email : senderEmail});
-    const receiver = await StudentModel.findOne({email : receiverEmail});
+    const senderUsername = socket.user.username;
+    const sender = await StudentModel.findOne({username : senderUsername});
+    const receiver = await StudentModel.findOne({username : receiverUsername});
     if(!sender || !receiver) return ;
     const newMessage = new MessageModel({
       senderId : sender._id,
@@ -472,15 +453,15 @@ socket.on("sendMessage", async({senderEmail, receiverEmail, text}) => {
       text,
     });
     await newMessage.save();
-    io.to(receiverEmail).emit("receiveMessage", {
-      senderEmail,
-      receiverEmail,
+    io.to(receiverUsername).emit("receiveMessage", {
+      senderUsername,
+      receiverUsername,
       text,
       createdAt : newMessage.createdAt,
     });
-    io.to(senderEmail).emit("receiveMessage", {
-      senderEmail,
-      receiverEmail,
+    io.to(senderUsername).emit("receiveMessage", {
+      senderUsername,
+      receiverUsername,
       text,
       createdAt : newMessage.createdAt,
     });
