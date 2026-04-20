@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Navbar from "../../components/navBar/Navbar";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode"; // Correct named import
 import "./Login.css";

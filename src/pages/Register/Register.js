@@ -3,7 +3,6 @@ import "./Register.css";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Link } from "react-router-dom";
-import Navbar from "../../components/navBar/Navbar";
 const backend_url = process.env.REACT_APP_BACKEND_URL; 
 const Register = () => {
   const [username, setUsername] = useState("");

@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import {io} from "socket.io-client";
 import NewNavBar from "../newNavBar/newNavBar";
-import PastChat from "../pastChat/pastChat";
 import ChatList from "../ChatList/ChatList";
 import axios from "axios";
 import "./chatApp.css";
@@ -12,7 +11,6 @@ function ChatApp() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([]);
   const chatEndRef = useRef(null);
-  const [selectedContact, setSelectedContact] = useState(null);
 
   const token = localStorage.getItem("token");
   const senderUsername = localStorage.getItem("username") || "You";
@@ -148,7 +146,7 @@ function ChatApp() {
       token={token}
       currentUserName={senderUsername}
       onSelectContact={(contact) => {
-        setSelectedContact(contact);
+        // setSelectedContact(contact);
         setReceiverUsername(contact.receiverUserName);
         setChatStarted(true);
         fetchMessages(); // fetch messages with this contact
