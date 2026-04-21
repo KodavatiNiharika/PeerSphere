@@ -107,15 +107,6 @@ function ChatApp() {
     const newMsg = {receiverUsername, text: input };
 
     try {
-      // Add locally for instant UI update
-      setMessages((prev) => [
-        ...prev, //if u use ...messages, then u may miss the previous updated data
-        {
-          senderId: {username: senderUsername },
-          text: input,
-          createdAt: new Date().toISOString(), // add current timestamp
-        },
-      ]);
       setInput("");
       
       socketRef.current.emit("sendMessage", newMsg);
