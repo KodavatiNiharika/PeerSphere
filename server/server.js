@@ -437,10 +437,13 @@ io.use((socket, next) => {
 });
 io.on("connection", (socket) =>{ // fires when a client successfully connects
 console.log("User connected :", socket.id);
-socket.on("join", (username) => {
+const username = socket.user.username;
+if (!username) {
+    alert("Login to chat!");
+    return;
+  }
   socket.join(username);
-  console.log(`${username} joined their room`);
-});
+
 socket.on("sendMessage", async({receiverUsername, text}) => {
   try {
     const senderUsername = socket.user.username;
@@ -453,6 +456,7 @@ socket.on("sendMessage", async({receiverUsername, text}) => {
       text,
     });
     await newMessage.save();
+
     io.to(receiverUsername).emit("receiveMessage", {
       senderUsername,
       receiverUsername,

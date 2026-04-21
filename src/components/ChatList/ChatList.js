@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-
+const backend_url = process.env.REACT_APP_BACKEND_URL;
 export default function ChatList({ token, currentUserEmail, onSelectContact }) {
   const [contacts, setContacts] = useState([]);
 
   useEffect(() => {
     const fetchContacts = async () => {
       try {
-        const res = await axios.get("https://peersphere-3.onrender.com/api/chatContacts", {
+        const res = await axios.get(`${backend_url}/api/chatContacts`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setContacts(res.data.contacts);

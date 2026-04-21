@@ -24,3 +24,5 @@ yarn-error.log*
 
 /server/uploads
 /server/node_modules
+
+/server/.env

@@ -4,7 +4,7 @@ import NewNavBar from "../newNavBar/newNavBar";
 import ChatList from "../ChatList/ChatList";
 import axios from "axios";
 import "./chatApp.css";
-
+const backend_url = process.env.REACT_APP_BACKEND_URL;
 function ChatApp() {
   const [receiverUsername, setReceiverUsername] = useState("");
   const [chatStarted, setChatStarted] = useState(false);
@@ -16,14 +16,13 @@ function ChatApp() {
   const senderUsername = localStorage.getItem("username") || "You";
   const socketRef = useRef(null);
   useEffect(() => {
-    socketRef.current = io("https://peersphere-3.onrender.com", {
+    socketRef.current = io(`${backend_url}`, {
       path: "/socket.io",
       transports: ["websocket"],
       auth: {
         token: localStorage.getItem("token"),
       },
     });
-    socketRef.current.emit("join");
     socketRef.current.on("receiveMessage", (msg) =>{
       setMessages((prev) => [...prev, {
         senderId : {username : msg.senderUsername},
@@ -42,7 +41,7 @@ function ChatApp() {
     if (!receiverUsername) return;
 
     try {
-      const response = await axios.get("https://peersphere-3.onrender.com/api/messages", {
+      const response = await axios.get(`${backend_url}/api/messages`, {
         params: { senderUsername, receiverUsername},
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -69,7 +68,7 @@ function ChatApp() {
   try {
     // Check if the user exists
     const res = await axios.get(
-      "https://peersphere-3.onrender.com/api/users/findByUserName", // change this while pushing to github
+      `${backend_url}/api/users/findByUserName`, // change this while pushing to github
       {
         params: { username: receiverUsername },
         headers: { Authorization: `Bearer ${token}` },
